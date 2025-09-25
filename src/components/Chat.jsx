@@ -28,6 +28,7 @@ const Chat = ({ user }) => {
       if (isMounted) { // Removed receiverEmail === fromEmail check here
         console.log(`Invite from ${fromEmail} accepted.`);
         setReceiverEmail(fromEmail); // Ensure receiverEmail is set for the accepting user
+        setIsConnected(true);
         // Now that connection is accepted, initiate WebRTC connection
         webrtcService.initiatePeerConnection(user.email, fromEmail);
         if (webrtcService.socket && webrtcService.socket.connected) {
@@ -40,7 +41,6 @@ const Chat = ({ user }) => {
       if (!isMounted) return;
       const decoded = cryptoService.decodePublicKey(data.publicKey);
       setTheirPublicKey(decoded);
-      setIsConnected(true); // Connection is fully established now
       console.log('Received peer public key');
     });
 
@@ -99,6 +99,7 @@ const Chat = ({ user }) => {
     if (inviteReceived) {
       webrtcService.socket.emit('accept-invite', { to: inviteReceived, from: user.email });
       setReceiverEmail(inviteReceived); // Set receiver to the inviter
+      setIsConnected(true);
       setInviteReceived(null); // Clear invite
       // Initiate WebRTC connection after accepting
       webrtcService.initiatePeerConnection(user.email, inviteReceived);
@@ -121,8 +122,8 @@ const Chat = ({ user }) => {
   };
 
   const handleSendMessage = () => {
-    if (!isConnected) {
-      alert('Not connected to a peer.');
+    if (!isConnected || !theirPublicKey) {
+      alert('Not connected to a peer or public key not exchanged.');
       return;
     }
     const message = {

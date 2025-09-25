@@ -7,42 +7,18 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-
-# Node modules
-node_modules/
-server/node_modules/
-
-# Build output
-dist/
-build/
-dist-ssr/
-
-# Vite cache
-.vite/
-
-# Local env files
-.env
-.env.*
-
-# Coverage
-coverage/
-
-# Misc
+node_modules
+dist
+dist-ssr
 *.local
-*.sublime-workspace
-*.sublime-project
 
 # Editor directories and files
- .vscode/
+.vscode/*
 !.vscode/extensions.json
-.idea/
+.idea
 .DS_Store
-Thumbs.db
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
-
-# Public build artifacts
-public/*.map
