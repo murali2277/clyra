@@ -15,6 +15,22 @@ const Chat = ({ user }) => {
   useEffect(() => {
     let isMounted = true;
 
+    // Initialize Vanta.js background
+    if (window.VANTA) {
+      window.VANTA.TOPOLOGY({
+        el: "#vanta-chat-bg",
+        mouseControls: true,
+        touchControls: true,
+        gyroControls: false,
+        minHeight: 200.00,
+        minWidth: 200.00,
+        scale: 1.00,
+        scaleMobile: 1.00,
+        color: 0x8e4e76,
+        backgroundColor: 0x000000 // Black background
+      });
+    }
+
     // Initialize socket connection for current user to receive invites
     webrtcService.connect(user.email);
 
@@ -145,7 +161,7 @@ const Chat = ({ user }) => {
   };
 
   return (
-    <div className="chat-container">
+    <div className="chat-container" id="vanta-chat-bg">
       <div className="chat-header">
         <h2>Welcome, {user.displayName}</h2>
         <button onClick={signOut}>Sign Out</button>
