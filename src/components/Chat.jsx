@@ -295,7 +295,10 @@ const Chat = ({ user }) => {
   return (
     <div className="chat-container" id="vanta-chat-bg">
       <div className="chat-header">
-        <h2>Welcome, {user.displayName}</h2>
+        <div className="header-titles">
+          <h2>CLYRA</h2>
+          <h2 className="welcome-message">Welcome, {user.displayName}</h2>
+        </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
           {isConnected && (
             <>
@@ -383,7 +386,7 @@ const Chat = ({ user }) => {
           {showInviteReceived && (
             <div style={{ textAlign: 'center', padding: '20px' }}>
               <p style={{ marginBottom: '15px', fontSize: '16px' }}>
-                📩 Invitation from <strong>{inviteReceived}</strong>
+                Invitation from <strong>{inviteReceived}</strong>
               </p>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
                 <button 
@@ -419,7 +422,7 @@ const Chat = ({ user }) => {
           {showConnecting && (
             <div style={{ textAlign: 'center', padding: '20px' }}>
               <p style={{ fontSize: '16px' }}>
-                🔄 Connecting to {receiverEmail}...
+                Connecting to {receiverEmail}...
               </p>
             </div>
           )}
@@ -427,7 +430,7 @@ const Chat = ({ user }) => {
           {showInviteSent && (
             <div style={{ textAlign: 'center', padding: '20px' }}>
               <p style={{ fontSize: '16px' }}>
-                ⏳ Invite sent to {receiverEmail}. Waiting for response...
+                Invite sent to {receiverEmail}. Waiting for response...
               </p>
               <button 
                 onClick={resetConnection}

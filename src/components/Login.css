@@ -4,3 +4,7 @@
   font-weight: 700; /* Bold */
   font-size: 2.5rem; /* Larger size, equivalent to text-4xl */
 }
+
+.header-titles{
+  line-height: 7px;
+}

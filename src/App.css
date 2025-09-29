@@ -52,6 +52,17 @@ body {
   font-family: 'Roboto Slab', serif;
 }
 
+.header-titles {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start; /* Align CLYRA to the left */
+}
+
+.welcome-message {
+  align-self: flex-end; /* Align Welcome message to the right within its column */
+  margin-top: 5px; /* Add some space below CLYRA */
+}
+
 .messages {
   flex-grow: 1;
   padding: 10px;
