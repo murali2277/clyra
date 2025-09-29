@@ -323,7 +323,7 @@ const Chat = ({ user }) => {
           )}
 
 
-          <button onClick={signOut}>Sign Out</button>
+          <button onClick={signOut} className="signout-button">Sign Out &nbsp;<i class="fa fa-sign-out" aria-hidden="true"></i></button>
         </div>
       </div>
       
@@ -450,30 +450,33 @@ const Chat = ({ user }) => {
           )}
 
           {showInviteInput && (
-            <div style={{ display: 'flex', gap: '10px', padding: '10px' }}>
-              <input
-                type="email"
-                value={receiverEmail}
-                onChange={(e) => setReceiverEmail(e.target.value)}
-                onKeyPress={handleKeyPress}
-                placeholder="Enter receiver email"
-                style={{ flex: 1 }}
-                autoFocus
-              />
-              <button 
-                onClick={handleSendInvite} 
-                disabled={!receiverEmail.trim() || !connectionStatus.socketConnected}
-                style={{
-                  padding: '10px 20px',
-                  backgroundColor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? '#ccc' : '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  cursor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? 'not-allowed' : 'pointer'
-                }}
-              >
-                Send Invite
-              </button>
+            <div style={{ width: '100%', maxWidth: '500px' }}>
+              <div style={{ display: 'flex', gap: '10px', padding: '10px' }}>
+                <input
+                  type="email"
+                  value={receiverEmail}
+                  onChange={(e) => setReceiverEmail(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  placeholder="Enter receiver email"
+                  style={{ flex: 1 }}
+                  autoFocus
+                />
+                <button 
+                  onClick={handleSendInvite} 
+                  className="send-invite-button"
+                  disabled={!receiverEmail.trim() || !connectionStatus.socketConnected}
+                  style={{
+                    padding: '10px 20px',
+                    backgroundColor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? '#ccc' : '#007bff',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '5px',
+                    cursor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? 'not-allowed' : 'pointer'
+                  }}
+                >
+                  Send Invite &nbsp;<i class="fa fa-share-square-o" aria-hidden="true"></i>
+                </button>
+              </div>
             </div>
           )}
         </div>

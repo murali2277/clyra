@@ -107,6 +107,15 @@ body {
   border-top: 1px solid #ccc;
 }
 
+.connection-input {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  flex-grow: 1; /* Take remaining space to center content vertically */
+}
+
 .message-input input {
   flex-grow: 1;
   padding: 10px;
@@ -122,4 +131,52 @@ body {
   color: white;
   border-radius: 5px;
   cursor: pointer;
+}
+
+.send-invite-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.send-invite-button:hover {
+  transform: scale(1.1);
+}
+
+.send-invite-button .fa-share-square-o {
+  transition: all 0.3s ease;
+}
+
+.send-invite-button:hover .fa-share-square-o {
+  animation: meat 1s infinite;
+}
+
+@keyframes meat {
+  0% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(5px);
+  }
+  100% {
+    transform: translateX(0);
+  }
+}
+
+.signin-button, .signout-button {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.signin-button:hover, .signout-button:hover {
+  transform: scale(1.1);
+}
+
+.signin-button .fa-sign-in, .signout-button .fa-sign-out {
+  transition: all 0.3s ease;
+}
+
+.signin-button:hover .fa-sign-in, .signout-button:hover .fa-sign-out {
+  animation: meat 1s infinite;
 }
