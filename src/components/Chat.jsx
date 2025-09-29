@@ -1,3 +1,6 @@
+// The React component remains largely unchanged, as the full-screen adjustments are handled in CSS.
+// Ensure your App.js or root component renders the Chat component within .App without additional wrappers that could restrict size.
+
 import React, { useState, useEffect } from 'react';
 import webrtcService from '../services/webrtcService';
 import { signOut } from '../services/authService';
@@ -198,9 +201,7 @@ const Chat = ({ user }) => {
     
     // Auto-reset invite after 30 seconds
     setTimeout(() => {
-      if (isMounted) {
-        setInviteSent(false);
-      }
+      setInviteSent(false);
     }, 30000);
   };
 

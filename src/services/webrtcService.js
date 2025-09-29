@@ -10,7 +10,7 @@ class WebRTCService {
     this.remoteId = null;
     this.pendingCandidates = []; // Initialize this
   }
-
+k
   initializePeerConnection() {
     // Close existing connection if it exists
     if (this.peerConnection) {
