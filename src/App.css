@@ -40,6 +40,7 @@ body {
   height: 100vh;
   width: 100vw; /* Changed to 100vw for full width */
   margin: 0; /* Removed auto to prevent centering */
+  background: linear-gradient(to bottom right, #2c0a3d, #a049c0);
 }
 
 .chat-header {
@@ -48,28 +49,44 @@ body {
   align-items: center;
   padding: 10px;
   border-bottom: 1px solid #ccc;
+  font-family: 'Roboto Slab', serif;
 }
 
 .messages {
   flex-grow: 1;
   padding: 10px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .message {
   margin-bottom: 10px;
-  padding: 10px;
+  padding: 5px 10px;
   border-radius: 10px;
   max-width: 80%;
+  font-family: 'Roboto', sans-serif;
+  display: inline-block;
+  width: auto;
+}
+
+.message p {
+  margin: 0;
 }
 
 .message.sent {
-  background-color: #dcf8c6;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
   align-self: flex-end;
 }
 
 .message.received {
-  background-color: #f1f0f0;
+  background-color: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
   align-self: flex-start;
 }
 

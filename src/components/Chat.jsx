@@ -59,21 +59,6 @@ const Chat = ({ user }) => {
       }
     };
 
-    // Initialize Vanta.js background
-    if (window.VANTA) {
-      window.VANTA.TOPOLOGY({
-        el: "#vanta-chat-bg",
-        mouseControls: true,
-        touchControls: true,
-        gyroControls: false,
-        minHeight: 200.00,
-        minWidth: 200.00,
-        scale: 1.00,
-        scaleMobile: 1.00,
-        color: 0x8e4e76,
-        backgroundColor: 0x000000
-      });
-    }
 
     // Connect to WebRTC service and set message handler
     webrtcService.connect(user.email);
@@ -334,14 +319,6 @@ const Chat = ({ user }) => {
             </>
           )}
 
-          {/* Connection Status Indicator */}
-          <div style={{ fontSize: '10px', color: '#666' }}>
-            <div>Socket: {connectionStatus.socketConnected ? '🟢' : '🔴'}</div>
-            <div>Peer: {connectionStatus.peerConnectionState === 'connected' ? '🟢' : 
-                      connectionStatus.peerConnectionState === 'connecting' ? '🟡' : '🔴'}</div>
-            <div>Data: {connectionStatus.dataChannelState === 'open' ? '🟢' : 
-                      connectionStatus.dataChannelState === 'connecting' ? '🟡' : '🔴'}</div>
-          </div>
 
           <button onClick={signOut}>Sign Out</button>
         </div>
@@ -374,7 +351,7 @@ const Chat = ({ user }) => {
           <div key={msg.id} className={`message ${msg.sender === user.email ? 'sent' : 'received'}`}>
             <p>{msg.text}</p>
             <small style={{ fontSize: '10px', opacity: 0.7 }}>
-              {new Date(msg.timestamp).toLocaleTimeString()}
+              {new Date(msg.timestamp).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
             </small>
           </div>
         ))}
