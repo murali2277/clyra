@@ -9,9 +9,17 @@ class WebRTCService {
     this.messageHandler = null;
     this.remoteId = null;
     this.pendingCandidates = []; // Initialize this
+    this.isInitializing = false;
   }
-k
+
   initializePeerConnection() {
+    if (this.isInitializing) {
+      console.log('WebRTCService: Already initializing peer connection, skipping');
+      return;
+    }
+
+    this.isInitializing = true;
+
     // Close existing connection if it exists
     if (this.peerConnection) {
       this.peerConnection.close();
@@ -96,7 +104,7 @@ k
       transports: ['websocket'],
       reconnection: true,
       reconnectionDelay: 1000,
-      reconnectionAttempts: 5
+      reconnectionAttempts: 10
     });
 
     this.socket.on('connect', () => {
@@ -106,7 +114,7 @@ k
 
     this.socket.on('disconnect', (reason) => {
       console.log('WebRTCService: Socket disconnected:', reason);
-      if (reason === 'io server disconnect') {
+      if (reason === 'io server disconnect' || reason === 'server namespace disconnect') {
         this.socket.connect();
       }
     });
@@ -168,13 +176,13 @@ k
       try {
         console.log('WebRTCService: Received signal from', data.from, 'type:', data.signal.type || 'candidate');
         
-        // Ensure we have a valid peer connection
-        if (!this.peerConnection || this.peerConnection.signalingState === 'closed') {
-          console.log('WebRTCService: Reinitializing peer connection for signal');
-          this.initializePeerConnection();
-        }
+      // Ensure we have a valid peer connection
+      if (!this.peerConnection || this.peerConnection.signalingState === 'closed') {
+        console.log('WebRTCService: Reinitializing peer connection for signal');
+        this.initializePeerConnection();
+      }
 
-        if (data.signal.type === 'offer') {
+      if (data.signal.type === 'offer') {
           console.log('WebRTCService: Processing offer from', data.from);
           this.remoteId = data.from; // Set remoteId when receiving an offer
           if (this.peerConnection.signalingState === 'stable' || this.peerConnection.signalingState === 'have-remote-offer') {
@@ -284,7 +292,7 @@ k
       
       // Create data channel as the initiator
       if (!this.dataChannel) {
-        console.log('WebRTCService: Creating data channel as initiator');
+        console.log('WebRTCService: Creating data channel for initiator');
         this.dataChannel = this.peerConnection.createDataChannel('chat', {
           ordered: true,
           maxRetransmits: 3
@@ -380,6 +388,8 @@ k
           maxRetransmits: 3
         });
         this.setupDataChannelHandlers();
+      } finally {
+        this.isInitializing = false;
       }
     }
   }
