@@ -321,7 +321,11 @@ const Chat = ({ user }) => {
               </button>
             </>
           )}
-          <button onClick={signOut} className="signout-button">Sign Out &nbsp;<i class="fa fa-sign-out" aria-hidden="true"></i></button>
+          <div className="container">
+            <div className="btn">
+              <a onClick={signOut}>Sign Out &nbsp;<i class="fa fa-sign-out" aria-hidden="true"></i></a>
+            </div>
+          </div>
         </div>
       </div>
       
