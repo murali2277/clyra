@@ -530,3 +530,48 @@ body {
   background: rgba(255, 255, 255, 0.08);
   box-shadow: 0 4px 12px 0 rgba(31, 38, 135, 0.37);
 }
+
+/* Glassmorphic button with shine effect - increased size */
+.glassmorphic-small-button {
+  padding: 8px 15px;
+  font-size: 16px;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  border-radius: 15px;
+  cursor: pointer;
+  height: 45px;
+  width: 80px;
+  backdrop-filter: blur(50px);
+  box-shadow: 0 4px 16px 0 rgba(31, 38, 135, 0.2);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Shine effect */
+.glassmorphic-small-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.glassmorphic-small-button:hover::before {
+  left: 100%;
+}
+
+.glassmorphic-small-button:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  box-shadow: 0 6px 20px 0 rgba(31, 38, 135, 0.3);
+}

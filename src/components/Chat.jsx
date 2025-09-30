@@ -303,17 +303,7 @@ const Chat = ({ user }) => {
               </span>
               <button 
                 onClick={resetConnection} 
-                style={{
-                  padding: '5px 10px',
-                  fontSize: '12px',
-                  backgroundColor: 'transparent',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '3px',
-                  cursor: 'pointer',
-                  height: '30px',
-                  width: '60px',
-                }}
+                className="glassmorphic-small-button"
               >
                 Reset
               </button>
