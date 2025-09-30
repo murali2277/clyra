@@ -299,7 +299,7 @@ const Chat = ({ user }) => {
           <h2>CLYRA</h2>
           <h2 className="welcome-message">Welcome, {user.displayName}</h2>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {isConnected && (
             <>
               <span style={{ color: 'green', fontSize: '14px' }}>
@@ -321,8 +321,6 @@ const Chat = ({ user }) => {
               </button>
             </>
           )}
-
-
           <button onClick={signOut} className="signout-button">Sign Out &nbsp;<i class="fa fa-sign-out" aria-hidden="true"></i></button>
         </div>
       </div>
