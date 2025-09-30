@@ -391,9 +391,10 @@ const Chat = ({ user }) => {
                   onClick={handleAcceptInvite}
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: '#28a745',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     color: 'white',
-                    border: 'none',
                     borderRadius: '5px',
                     cursor: 'pointer'
                   }}
@@ -404,9 +405,10 @@ const Chat = ({ user }) => {
                   onClick={handleDeclineInvite}
                   style={{
                     padding: '10px 20px',
-                    backgroundColor: '#dc3545',
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backdropFilter: 'blur(10px)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
                     color: 'white',
-                    border: 'none',
                     borderRadius: '5px',
                     cursor: 'pointer'
                   }}
