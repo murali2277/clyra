@@ -8,3 +8,12 @@
 .header-titles{
   line-height: 7px;
 }
+
+.welcome-text-animation {
+  font-size: 3rem; /* Equivalent to text-5xl */
+  font-weight: 700; /* font-bold */
+  color: white; /* text-white */
+  margin-bottom: 4px; /* mb-8 */
+  margin-top: -2px;
+  font-family: 'Josefin Sans', sans-serif;
+}
