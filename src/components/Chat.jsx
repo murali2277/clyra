@@ -298,7 +298,7 @@ const Chat = ({ user }) => {
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {isConnected && (
             <>
-              <span style={{ color: 'green', fontSize: '14px' }}>
+              <span style={{ color: '#f8f8f8ff', fontSize: '14px' }}>
                 Connected to: {receiverEmail}
               </span>
               <button 
@@ -332,7 +332,7 @@ const Chat = ({ user }) => {
         {messages.length === 0 && isConnected && (
           <div style={{
             textAlign: 'center',
-            color: '#666',
+            color: '#ffffffc3',
             fontStyle: 'italic',
             marginTop: '50px'
           }}>
