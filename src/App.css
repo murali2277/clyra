@@ -40,7 +40,8 @@ body {
   height: 100vh;
   width: 100vw; /* Changed to 100vw for full width */
   margin: 0; /* Removed auto to prevent centering */
-  position: relative; background-image: linear-gradient(135deg, #f97794 10%, #623aa2 100%);
+  position: relative;
+  background-image: linear-gradient(135deg, #f97794 10%, #623aa2 100%);
 }
 
 .chat-header {
@@ -138,10 +139,12 @@ body {
   position: relative;
   overflow: hidden;
   transition: all 0.3s ease;
+  padding: 5px 10px; /* Reduces space around the text */
+  font-size: 14px;      /* Makes the text smaller */
 }
 
 .send-invite-button:hover {
-  transform: scale(1.1);
+  /* transform: scale(1.1); */
 }
 
 .send-invite-button .fa-share-square-o {
@@ -186,11 +189,28 @@ body {
   animation: meat 1s infinite;
 }
 
-/* New CSS for Glassmorphism button animation */
+/* --- New and modified styles --- */
+
+/* Styles for the invite email input field */
+.invite-email-input {
+  flex: 1;
+  background-color: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  color: white;
+  border-radius: 15px;
+  padding: 10px 15px;
+  font-size: 16px;
+}
+
+.invite-email-input::placeholder {
+  color: rgba(255, 255, 255, 0.7);
+}
+
+/* General button container styling */
 .container {
   position: relative;
-  width: 120px; /* Adjusted width */
-  height: 40px; /* Adjusted height */
+  width: auto;
+  height: auto;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -206,102 +226,307 @@ body {
 }
 
 .btn a {
-	position: relative; /* Changed from absolute */
-	top: 0;
-	left: 0;
-	width: 100%;
-	height: 100%;
-	display: flex;
-	justify-content: center;
-	align-items: center;
-	background: rgba(255, 255, 255, 0.05);
-	box-shadow: 0 15px 15px rgba(0, 0, 0, 0.3);
-	border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-	border-top: 1px solid rgba(255, 255, 255, 0.1);
-	border-radius: 15px; /* Reduced border-radius */
-	padding: 10px;
-	letter-spacing: 1px;
-	text-decoration: none;
-	overflow: hidden;
-	color: #fff;
-	font-weight: 400; /* Corrected from 400px */
-	z-index: 1;
-	transition: 0.5s;
-	backdrop-filter: blur(15px);
-	white-space: nowrap; /* Prevent text wrapping */
+  position: relative;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 15px 15px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 10px 20px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 400;
+  z-index: 1;
+  transition: 0.5s;
+  backdrop-filter: blur(15px);
+  white-space: nowrap;
 }
+
 .container .btn:hover a {
-	letter-spacing: 1px; /* Reduced letter-spacing on hover */
+  letter-spacing: 1px;
 }
+
 .container .btn a::before {
-	content: "";
-	position: absolute;
-	top: 0;
-	left: 0;
-	width: 50%;
-	height: 100%;
-	background: linear-gradient(to left, rgba(255, 255, 255, 0.15), transparent);
-	transform: skewX(45deg) translate(0);
-	transition: 0.5s;
-	filter: blur(0px);
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.15), transparent);
+  transform: skewX(45deg) translate(0);
+  transition: 0.5s;
+  filter: blur(0px);
 }
+
 .container .btn:hover a::before {
-	transform: skewX(45deg) translate(200px);
+  transform: skewX(45deg) translate(200px);
 }
+
 .container .btn::before {
-	content: "";
-	position: absolute;
-	left: 50%;
-	transform: translatex(-50%);
-	bottom: -5px;
-	width: 30px;
-	height: 10px;
-	background: #f00;
-	border-radius: 10px;
-	transition: 0.25s; /* Increased speed to 2x */
-	transition-delay: 0.25s; /* Increased speed to 2x */
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+  bottom: -5px;
+  width: 30px;
+  height: 10px;
+  background: #f00;
+  border-radius: 10px;
+  transition: 0.25s;
+  transition-delay: 0.25s;
 }
+
 .container .btn:hover::before /*lightup button*/ {
-	bottom: 0;
-	height: 50%;
-	width: 80%;
-	border-radius: 30px;
+  bottom: 0;
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
 }
 
 .container .btn::after {
-	content: "";
-	position: absolute;
-	left: 50%;
-	transform: translatex(-50%);
-	top: -5px;
-	width: 30px;
-	height: 10px;
-	background: #f00;
-	border-radius: 10px;
-	transition: 0.25s; /* Increased speed to 2x */
-	transition-delay: 0.25s; /* Increased speed to 2x */
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+  top: -5px;
+  width: 30px;
+  height: 10px;
+  background: #f00;
+  border-radius: 10px;
+  transition: 0.25s;
+  transition-delay: 0.25s;
 }
+
 .container .btn:hover::after /*lightup button*/ {
-	top: 0;
-	height: 50%;
-	width: 80%;
-	border-radius: 30px;
+  top: 0;
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
 }
-.container .btn:nth-child(1)::before, /*chnage 1*/
-.container .btn:nth-child(1)::after {
-	background: #ff1f71;
-	box-shadow: 0 0 5px #ff1f71, 0 0 15px #ff1f71, 0 0 30px #ff1f71,
-		0 0 60px #ff1f71;
+
+/* Styles for Send Invite button */
+.send-invite-container,
+.send-invite-container .btn,
+.send-invite-container .btn a.send-invite-button {
+  height: 100%;
 }
-.container .btn:nth-child(2)::before, /* 2*/
-.container .btn:nth-child(2)::after {
-	background: #2db2ff;
-	box-shadow: 0 0 5px #2db2ff, 0 0 15px #2db2ff, 0 0 30px #2db2ff,
-		0 0 60px #2db2ff;
+
+.send-invite-container .btn::before,
+.send-invite-container .btn::after {
+  background: #1eff45; /* Green color */
+  box-shadow: 0 0 5px #1eff45, 0 0 15px #1eff45, 0 0 30px #1eff45,
+    0 0 60px #1eff45;
 }
-.container .btn:nth-child(3)::before, /* 3*/
-.container .btn:nth-child(3)::after {
-	background: #1eff45;
-	box-shadow: 0 0 5px #1eff45, 0 0 15px #1eff45, 0 0 30px #1eff45,
-		0 0 60px #1eff45;
+
+/* Styles for Accept and Decline button containers */
+.accept-container,
+.decline-container {
+  position: relative;
+  width: auto;
+  height: auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.accept-container .btn,
+.decline-container .btn {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Base button styling for Accept and Decline */
+.accept-button,
+.decline-button {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.05);
+  box-shadow: 0 15px 15px rgba(0, 0, 0, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 10px 20px;
+  letter-spacing: 1px;
+  text-decoration: none;
+  overflow: hidden;
+  color: #fff;
+  font-weight: 400;
+  z-index: 1;
+  transition: 0.5s;
+  backdrop-filter: blur(15px);
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  font-size: 16px;
+}
+
+/* Hover effect for button text */
+.accept-container .btn:hover .accept-button,
+.decline-container .btn:hover .decline-button {
+  letter-spacing: 1px;
+}
+
+/* Light sweep effect on hover */
+.accept-button::before,
+.decline-button::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(to left, rgba(255, 255, 255, 0.15), transparent);
+  transform: skewX(45deg) translate(0);
+  transition: 0.5s;
+  filter: blur(0px);
+}
+
+.accept-container .btn:hover .accept-button::before,
+.decline-container .btn:hover .decline-button::before {
+  transform: skewX(45deg) translate(200px);
+}
+
+/* Green glow effect for Accept button - bottom */
+.accept-container .btn::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+  bottom: -5px;
+  width: 30px;
+  height: 10px;
+  background: #1eff45;
+  border-radius: 10px;
+  transition: 0.25s;
+  transition-delay: 0.25s;
+}
+
+.accept-container .btn:hover::before {
+  bottom: 0;
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
+  box-shadow: 0 0 5px #1eff45, 0 0 15px #1eff45, 0 0 30px #1eff45, 0 0 60px #1eff45;
+}
+
+/* Green glow effect for Accept button - top */
+.accept-container .btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+  top: -5px;
+  width: 30px;
+  height: 10px;
+  background: #1eff45;
+  border-radius: 10px;
+  transition: 0.25s;
+  transition-delay: 0.25s;
+}
+
+.accept-container .btn:hover::after {
+  top: 0;
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
+  box-shadow: 0 0 5px #1eff45, 0 0 15px #1eff45, 0 0 30px #1eff45, 0 0 60px #1eff45;
+}
+
+/* Red glow effect for Decline button - bottom */
+.decline-container .btn::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+  bottom: -5px;
+  width: 30px;
+  height: 10px;
+  background: #ff1e45;
+  border-radius: 10px;
+  transition: 0.25s;
+  transition-delay: 0.25s;
+}
+
+.decline-container .btn:hover::before {
+  bottom: 0;
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
+  box-shadow: 0 0 5px #ff1e45, 0 0 15px #ff1e45, 0 0 30px #ff1e45, 0 0 60px #ff1e45;
+}
+
+/* Red glow effect for Decline button - top */
+.decline-container .btn::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  transform: translatex(-50%);
+  top: -5px;
+  width: 30px;
+  height: 10px;
+  background: #ff1e45;
+  border-radius: 10px;
+  transition: 0.25s;
+  transition-delay: 0.25s;
+}
+
+.decline-container .btn:hover::after {
+  top: 0;
+  height: 50%;
+  width: 80%;
+  border-radius: 30px;
+  box-shadow: 0 0 5px #ff1e45, 0 0 15px #ff1e45, 0 0 30px #ff1e45, 0 0 60px #ff1e45;
+}
+
+/* Enhanced blur effect for all button containers */
+
+/* Sign Out button blur effect */
+.container .btn::before,
+.container .btn::after {
+  filter: blur(8px);
+}
+
+/* Send Invite button blur effect */
+.send-invite-container .btn::before,
+.send-invite-container .btn::after {
+  filter: blur(8px);
+}
+
+/* Accept button blur effect */
+.accept-container .btn::before,
+.accept-container .btn::after {
+  filter: blur(8px);
+}
+
+/* Decline button blur effect */
+.decline-container .btn::before,
+.decline-container .btn::after {
+  filter: blur(8px);
+}
+
+/* Optional: Enhanced glassmorphism effect on hover */
+.container .btn:hover a,
+.send-invite-container .btn:hover a,
+.accept-container .btn:hover .accept-button,
+.decline-container .btn:hover .decline-button {
+  background: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 4px 12px 0 rgba(31, 38, 135, 0.37);
 }

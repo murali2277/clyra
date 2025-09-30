@@ -1,6 +1,3 @@
-// The React component remains largely unchanged, as the full-screen adjustments are handled in CSS.
-// Ensure your App.js or root component renders the Chat component within .App without additional wrappers that could restrict size.
-
 import React, { useState, useEffect } from 'react';
 import webrtcService from '../services/webrtcService';
 import { signOut } from '../services/authService';
@@ -13,7 +10,7 @@ const Chat = ({ user }) => {
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteReceived, setInviteReceived] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState({});
-  const [isConnecting, setIsConnecting] = useState(false); // Add this state
+  const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -58,7 +55,6 @@ const Chat = ({ user }) => {
         }
       }
     };
-
 
     // Connect to WebRTC service and set message handler
     webrtcService.connect(user.email);
@@ -152,7 +148,7 @@ const Chat = ({ user }) => {
       
       console.log('Chat: Component unmounting');
     };
-  }, [user.email]);
+  }, [user.email, messages]);
 
   // Reset connection method
   const resetConnection = () => {
@@ -310,20 +306,22 @@ const Chat = ({ user }) => {
                 style={{
                   padding: '5px 10px',
                   fontSize: '12px',
-                  backgroundColor: '#ff6b6b',
+                  backgroundColor: 'transparent',
                   color: 'white',
                   border: 'none',
                   borderRadius: '3px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  height: '30px',
+                  width: '60px',
                 }}
               >
-                Reset Connection
+                Reset
               </button>
             </>
           )}
           <div className="container">
             <div className="btn">
-              <a onClick={signOut}>Sign Out &nbsp;<i class="fa fa-sign-out" aria-hidden="true"></i></a>
+              <a onClick={signOut}>Sign Out &nbsp;<i className="fa fa-sign-out" aria-hidden="true"></i></a>
             </div>
           </div>
         </div>
@@ -391,34 +389,20 @@ const Chat = ({ user }) => {
                 Invitation from <strong>{inviteReceived}</strong>
               </p>
               <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
-                <button 
-                  onClick={handleAcceptInvite}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: 'white',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Accept
-                </button>
-                <button 
-                  onClick={handleDeclineInvite}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                    backdropFilter: 'blur(10px)',
-                    border: '1px solid rgba(255, 255, 255, 0.3)',
-                    color: 'white',
-                    borderRadius: '5px',
-                    cursor: 'pointer'
-                  }}
-                >
-                  Decline
-                </button>
+                <div className="accept-container">
+                  <div className="btn">
+                    <button onClick={handleAcceptInvite} className="accept-button">
+                      Accept
+                    </button>
+                  </div>
+                </div>
+                <div className="decline-container">
+                  <div className="btn">
+                    <button onClick={handleDeclineInvite} className="decline-button">
+                      Decline
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -440,12 +424,15 @@ const Chat = ({ user }) => {
                 onClick={resetConnection}
                 style={{
                   padding: '10px 20px',
-                  backgroundColor: '#6c757d',
+                  backgroundColor: 'rgba(255, 255, 255, 0.1)',
                   color: 'white',
-                  border: 'none',
+                  border: '1px solid rgba(255, 255, 255, 0.3)',
                   borderRadius: '5px',
                   cursor: 'pointer',
-                  marginTop: '10px'
+                  marginTop: '10px',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.2)',
+                  transition: 'all 0.3s ease'
                 }}
               >
                 Cancel
@@ -455,31 +442,30 @@ const Chat = ({ user }) => {
 
           {showInviteInput && (
             <div style={{ width: '100%', maxWidth: '500px' }}>
-              <div style={{ display: 'flex', gap: '10px', padding: '10px' }}>
+              <div style={{ display: 'flex', gap: '10px', padding: '10px', alignItems: 'stretch' }}>
                 <input
                   type="email"
+                  className="invite-email-input"
                   value={receiverEmail}
                   onChange={(e) => setReceiverEmail(e.target.value)}
                   onKeyPress={handleKeyPress}
                   placeholder="Enter receiver email"
-                  style={{ flex: 1 }}
                   autoFocus
                 />
-                <button 
-                  onClick={handleSendInvite} 
-                  className="send-invite-button"
-                  disabled={!receiverEmail.trim() || !connectionStatus.socketConnected}
-                  style={{
-                    padding: '10px 20px',
-                    backgroundColor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? '#ccc' : '#007bff',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '5px',
-                    cursor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? 'not-allowed' : 'pointer'
-                  }}
-                >
-                  Send Invite &nbsp;<i class="fa fa-share-square-o" aria-hidden="true"></i>
-                </button>
+                <div className="container send-invite-container">
+                  <div className="btn">
+                    <a 
+                      onClick={handleSendInvite} 
+                      className="send-invite-button"
+                      style={{
+                        cursor: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? 'not-allowed' : 'pointer',
+                        opacity: (!receiverEmail.trim() || !connectionStatus.socketConnected) ? 0.5 : 1,
+                      }}
+                    >
+                      Send Invite &nbsp;<i className="fa fa-share-square-o" aria-hidden="true"></i>
+                    </a>
+                  </div>
+                </div>
               </div>
             </div>
           )}
