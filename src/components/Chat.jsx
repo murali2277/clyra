@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import webrtcService from '../services/webrtcService';
 import { signOut } from '../services/authService';
 
@@ -11,6 +11,15 @@ const Chat = ({ user }) => {
   const [inviteReceived, setInviteReceived] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState({});
   const [isConnecting, setIsConnecting] = useState(false);
+  const messageTimers = useRef({}); // Use useRef to store timers
+
+  // Function to clear a specific message timer
+  const clearMessageTimer = (messageId) => {
+    if (messageTimers.current[messageId]) {
+      clearTimeout(messageTimers.current[messageId]);
+      delete messageTimers.current[messageId];
+    }
+  };
 
   useEffect(() => {
     let isMounted = true;
@@ -43,13 +52,18 @@ const Chat = ({ user }) => {
         try {
           const messageData = JSON.parse(eventData.data);
           console.log('Chat: Parsed message:', messageData);
-          const messageWithTimer = {
-            ...messageData,
-            timer: setTimeout(() => {
-              setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== messageData.id));
-            }, 30000),
-          };
-          setMessages((prevMessages) => [...prevMessages, messageWithTimer]);
+          
+          // Set a timer for the received message
+          const timer = setTimeout(() => {
+            setMessages((prevMessages) => {
+              const updatedMessages = prevMessages.filter((msg) => msg.id !== messageData.id);
+              clearMessageTimer(messageData.id); // Clear timer when message is removed
+              return updatedMessages;
+            });
+          }, 30000);
+          
+          messageTimers.current[messageData.id] = timer; // Store timer in ref
+          setMessages((prevMessages) => [...prevMessages, messageData]); // Add message without timer property
         } catch (error) {
           console.error('Chat: Error parsing received message:', error);
         }
@@ -139,16 +153,15 @@ const Chat = ({ user }) => {
         clearInterval(statusInterval);
       }
 
-      // Clear message timers
-      messages.forEach(msg => {
-        if (msg.timer) {
-          clearTimeout(msg.timer);
-        }
-      });
+      // Clear all message timers when component unmounts
+      for (const messageId in messageTimers.current) {
+        clearTimeout(messageTimers.current[messageId]);
+      }
+      messageTimers.current = {}; // Reset the ref
       
       console.log('Chat: Component unmounting');
     };
-  }, [user.email, messages]);
+  }, [user.email]); // Removed 'messages' from dependency array
 
   // Reset connection method
   const resetConnection = () => {
@@ -160,7 +173,13 @@ const Chat = ({ user }) => {
     setInviteReceived(null);
     setMessages([]);
     webrtcService.reset();
+    // Clear all message timers on reset
+    for (const messageId in messageTimers.current) {
+      clearTimeout(messageTimers.current[messageId]);
+    }
+    messageTimers.current = {};
   };
+
 
   const handleSendInvite = () => {
     if (!webrtcService.socket || !webrtcService.socket.connected) {
@@ -257,14 +276,17 @@ const Chat = ({ user }) => {
 
     console.log('Chat: Message sent successfully:', message);
 
-    const messageWithTimer = {
-      ...message,
-      timer: setTimeout(() => {
-        setMessages((prevMessages) => prevMessages.filter((msg) => msg.id !== message.id));
-      }, 30000),
-    };
-    
-    setMessages((prevMessages) => [...prevMessages, messageWithTimer]);
+    // Set a timer for the sent message
+    const timer = setTimeout(() => {
+      setMessages((prevMessages) => {
+        const updatedMessages = prevMessages.filter((msg) => msg.id !== message.id);
+        clearMessageTimer(message.id); // Clear timer when message is removed
+        return updatedMessages;
+      });
+    }, 30000);
+
+    messageTimers.current[message.id] = timer; // Store timer in ref
+    setMessages((prevMessages) => [...prevMessages, message]); // Add message without timer property
     setNewMessage('');
   };
 
