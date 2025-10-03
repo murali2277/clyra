@@ -361,15 +361,16 @@ const Chat = ({ user }) => {
             autoFocus
           />
           <button 
-            onClick={handleSendMessage} 
-            disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open'}
-            style={{
-              opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 0.5 : 1,
-              cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer'
-            }}
-          >
-            Send
-          </button>
+  onClick={handleSendMessage} 
+  disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open'}
+  style={{
+    opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 0.5 : 1,
+    cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer'
+  }}
+>
+  <span className="material-icons">send</span>
+</button>
+
         </div>
       ) : (
         <div className="connection-input">

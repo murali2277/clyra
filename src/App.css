@@ -125,6 +125,10 @@ body {
   color: white;
 }
 
+.message-input input:focus {
+  outline: none;
+}
+
 .message-input button {
   margin-left: 10px;
   padding: 10px 20px;
@@ -200,6 +204,10 @@ body {
   border-radius: 15px;
   padding: 10px 15px;
   font-size: 16px;
+}
+
+.invite-email-input:focus {
+  outline: none;
 }
 
 .invite-email-input::placeholder {
