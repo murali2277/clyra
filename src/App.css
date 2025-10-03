@@ -47,20 +47,46 @@ body {
 .chat-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start; /* Align items to the top */
   padding: 10px;
   border-bottom: 1px solid #ccc;
   font-family: 'Roboto Slab', serif;
+  flex-wrap: wrap; /* Allow items to wrap on smaller screens */
+  gap: 10px; /* Add some space between items when they wrap */
 }
 
 .header-titles {
   display: flex;
   flex-direction: column;
   align-items: flex-start; /* Align CLYRA to the left */
+  flex-shrink: 1; /* Allow shrinking */
+  min-width: 0; /* Allow content to shrink below its intrinsic size */
 }
 
 .welcome-message {
   margin-top: 5px; /* Add some space below CLYRA */
+  word-break: break-word; /* Allow long words to break */
+  flex-shrink: 1; /* Allow shrinking */
+  min-width: 0; /* Allow content to shrink below its intrinsic size */
+}
+
+.connected-to-message {
+  color: #f8f8f8ff;
+  font-size: 14px;
+  margin-top: 5px;
+  word-break: break-word; /* Allow long words to break */
+  flex-shrink: 1; /* Allow shrinking */
+  min-width: 0; /* Allow content to shrink below its intrinsic size */
+}
+
+.header-buttons {
+  display: flex;
+  align-items: flex-start; /* Align items to the top */
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-shrink: 1; /* Allow shrinking */
+  min-width: 0; /* Allow content to shrink below its intrinsic size */
 }
 
 .messages {
@@ -79,6 +105,8 @@ body {
   font-family: 'Roboto', sans-serif;
   display: inline-block;
   width: auto;
+  word-break: break-word; /* Ensure long words break and wrap */
+  box-sizing: border-box; /* Include padding in the width calculation */
 }
 
 .message p {

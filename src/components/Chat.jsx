@@ -294,20 +294,20 @@ const Chat = ({ user }) => {
         <div className="header-titles">
           <h2>CLYRA</h2>
           <h2 className="welcome-message">Welcome, {user.displayName}</h2>
-        </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap', justifyContent: 'flex-end' }}>
           {isConnected && (
-            <>
-              <span style={{ color: '#f8f8f8ff', fontSize: '14px' }}>
-                Connected to: {receiverEmail}
-              </span>
-              <button 
-                onClick={resetConnection} 
-                className="glassmorphic-small-button"
-              >
-                Reset
-              </button>
-            </>
+            <span className="connected-to-message">
+              Connected to: {receiverEmail}
+            </span>
+          )}
+        </div>
+        <div className="header-buttons">
+          {isConnected && (
+            <button 
+              onClick={resetConnection} 
+              className="glassmorphic-small-button"
+            >
+              Reset
+            </button>
           )}
           <div className="container">
             <div className="btn">
