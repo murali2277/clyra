@@ -365,7 +365,9 @@ const Chat = ({ user }) => {
   disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open'}
   style={{
     opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 0.5 : 1,
-    cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer'
+    cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer',
+    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    border: '1px solid rgba(255, 255, 255, 0.3)',
   }}
 >
   <span className="material-icons">send</span>
