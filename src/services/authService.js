@@ -1,15 +1,15 @@
 import { initializeApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup } from 'firebase/auth';
 
-// TODO: Replace with your own Firebase project configuration
+// Firebase configuration using environment variables
 const firebaseConfig = {
-  apiKey: "AIzaSyBcQ6KwsuPRPgaCNsUcxaTcwNS6T3gkx4A",
-  authDomain: "clyra-9eb4c.firebaseapp.com",
-  projectId: "clyra-9eb4c",
-  storageBucket: "clyra-9eb4c.firebasestorage.app",
-  messagingSenderId: "789978674170",
-  appId: "1:789978674170:web:444146b3de9a987a642a43",
-  measurementId: "G-30KEMTXEBC"
+  apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
+  authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
+  projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
+  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
+  messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
+  appId: import.meta.env.VITE_FIREBASE_APP_ID,
+  measurementId: import.meta.env.VITE_FIREBASE_MEASUREMENT_ID
 };
 
 // Initialize Firebase
