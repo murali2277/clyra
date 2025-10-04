@@ -11,14 +11,8 @@
       "config": { "distDir": "dist" }
     }
   ],
-  "routes": [
-    {
-      "src": "/socket.io/(.*)",
-      "dest": "server/server.js"
-    },
-    {
-      "src": "/(.*)",
-      "dest": "/index.html"
-    }
+  "rewrites": [
+    { "source": "/socket.io/(.*)", "destination": "/server/server.js" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }
