@@ -1,6 +1,6 @@
 import io from 'socket.io-client';
 
-const SIGNALING_SERVER_URL = 'http://localhost:3001';
+const SIGNALING_SERVER_URL = import.meta.env.VITE_SIGNALING_SERVER_URL || 'http://localhost:3001';
 
 class WebRTCService {
   constructor() {

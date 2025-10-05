@@ -1,0 +1,18 @@
+# Stage 1: Setup Backend
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy backend package.json and install dependencies
+# We only copy the package files first to leverage Docker's layer caching.
+COPY server/package.json server/package-lock.json ./
+RUN npm install
+
+# Copy backend source code
+COPY server/server.js ./
+
+# Expose the port the server runs on
+EXPOSE 3001
+
+# Command to run the backend server
+CMD ["node", "server.js"]
