@@ -1,139 +1,136 @@
 # CLyra - Real-time Chat Application
 
-CLyra is a real-time chat application built with React for the frontend and Node.js for the backend, utilizing WebRTC for peer-to-peer communication and Socket.IO for signaling.
+CLyra is a real-time chat application featuring a React frontend and a Node.js backend. It uses WebRTC for secure, peer-to-peer communication and Socket.IO for signaling. The application is architected for a decoupled deployment, with the frontend hosted on Vercel and the backend on a container service like Render.
+
+## Technologies Used
+
+*   **Frontend:**
+    *   React
+    *   Vite
+    *   Socket.IO Client
+*   **Backend:**
+    *   Node.js
+    *   Express
+    *   Socket.IO
+    *   Docker
+*   **Deployment:**
+    *   Vercel (Frontend)
+    *   Render, Fly.io, or any container hosting service (Backend)
 
 ## Project Structure
 
-The project is organized into two main parts:
+The project is organized into two main, independent parts:
 
-*   **Client (`clyra/`):** The React frontend application.
-*   **Server (`clyra/server/`):** The Node.js backend signaling server.
+*   **Frontend (`/`):** A React application built with Vite.
+*   **Backend (`/server`):** A Node.js signaling server, ready to be containerized with Docker.
 
-## Requirements
+### File Structure
+```
+.
+├── Dockerfile.backend        # Dockerfile for the backend server
+├── README.md                 # Project documentation
+├── package.json              # Frontend dependencies and scripts
+├── server/
+│   ├── package.json          # Backend dependencies and scripts
+│   └── server.js             # The Node.js signaling server
+├── src/
+│   ├── components/           # React components
+│   ├── services/             # Services for authentication and WebRTC
+│   ├── App.jsx               # Main React application component
+│   └── main.jsx              # Entry point for the React application
+└── vercel.json               # Vercel deployment configuration for the frontend
+```
 
-To run this project, you need:
+## Local Development Setup
+
+### Prerequisites
 
 *   Node.js (LTS version recommended)
 *   npm (Node Package Manager)
+*   Docker (Optional, for building the backend image locally)
 
-## Setup Instructions
-
-Follow these steps to set up and run the project locally:
-
-### 1. Clone the Repository (if applicable)
-
-If you haven't already, clone the project repository:
+### 1. Clone the Repository
 
 ```bash
 git clone [repository-url]
 cd clyra
 ```
 
-### 2. Install Client Dependencies
+### 2. Install Dependencies
 
-Navigate to the client directory and install the dependencies:
+This project uses a single `package.json` at the root for the frontend. The backend has its own `package.json`.
 
 ```bash
-cd clyra
+# Install frontend dependencies
 npm install
+
+# Install backend dependencies
+cd server
+npm install
+cd ..
 ```
 
-### 3. Install Server Dependencies
+### 3. Configure Environment Variables
 
-Navigate to the server directory and install the dependencies:
+Create a `.env` file in the project root for the frontend:
+
+```
+VITE_SIGNALING_SERVER_URL=http://localhost:3001
+```
+
+### 4. Running the Application Locally
+
+You'll need two separate terminals to run the frontend and backend servers.
+
+**Terminal 1: Start the Backend Server**
 
 ```bash
 cd server
-npm install
+npm start
 ```
+The signaling server will be running on `http://localhost:3001`.
 
-## Running the Application
-
-### 1. Start the Signaling Server
-
-From the `clyra/server` directory, start the Node.js signaling server:
+**Terminal 2: Start the Frontend Development Server**
 
 ```bash
-cd clyra/server
-node server.js
-```
-
-The server will typically run on `http://localhost:3001`.
-
-### 2. Start the Client Application
-
-From the `clyra` directory, start the React development server:
-
-```bash
-cd clyra
+# From the project root directory
 npm run dev
 ```
+The React application will open in your browser at `http://localhost:5173`.
 
-The client application will typically open in your browser at `http://localhost:5173` (or another available port like `5174`).
+## Deployment
 
-## Features
+The frontend and backend are designed to be deployed independently.
 
-*   Real-time chat
-*   WebRTC for peer-to-peer data transfer
-*   Socket.IO for signaling
-*   Google authentication (requires configuration)
+### Backend Deployment (Render)
+
+The backend is containerized and can be deployed to any service that supports Docker or Node.js.
+
+1.  **Push your code to a GitHub repository.**
+2.  **Create a new Web Service on Render** and connect your repository.
+3.  **Configuration:**
+    *   **Environment:** `Node`
+    *   **Root Directory:** `server`
+    *   **Build Command:** `npm install`
+    *   **Start Command:** `npm start`
+4.  **Add Environment Variables:**
+    *   `CORS_ORIGIN`: The URL of your deployed Vercel frontend (e.g., `https://your-app.vercel.app`).
+5.  **Deploy.** Render will provide a public URL for your backend (e.g., `https://your-backend.onrender.com`).
+
+### Frontend Deployment (Vercel)
+
+1.  **Connect your GitHub repository to Vercel.**
+2.  **Configuration:** Vercel should automatically detect and configure the project as a Vite application.
+3.  **Add Environment Variables:**
+    *   `VITE_SIGNALING_SERVER_URL`: The public URL of your deployed Render backend.
+4.  **Deploy.**
 
 ## How WebRTC Communication Works
 
-CLyra uses WebRTC for direct peer-to-peer communication between users, facilitated by a Socket.IO signaling server. Here's a breakdown of the communication flow:
+CLyra uses WebRTC for direct peer-to-peer communication, facilitated by the Socket.IO signaling server.
 
-1.  **User Registration & Signaling:**
-    *   When a user logs into the CLyra client, their browser connects to the Socket.IO signaling server (`http://localhost:3001`).
-    *   The client registers its `userId` with the server, associating it with its unique Socket.IO `socket.id`. This allows the server to route messages to specific users.
-
-2.  **Initiating a Call (Offer/Answer Model):**
-    *   When User A wants to chat with User B, User A's client initiates a WebRTC peer connection.
-    *   User A's client creates a `DataChannel` (for sending chat messages) and then generates an **Offer** (an `RTCSessionDescription` of its capabilities).
-    *   This Offer is sent to the signaling server, which then forwards it to User B.
-    *   User B's client receives the Offer, sets it as its `remoteDescription`, and then generates an **Answer** (an `RTCSessionDescription` responding to User A's offer).
-    *   User B's client sends this Answer back to the signaling server, which forwards it to User A.
-    *   User A's client receives the Answer and sets it as its `remoteDescription`.
-
-3.  **ICE Candidate Exchange (Network Discovery):**
-    *   During the Offer/Answer exchange, both User A and User B's clients start gathering **ICE Candidates**. These candidates are potential network addresses (IP addresses and ports) through which the peers can connect.
-    *   Each time a client discovers an ICE candidate, it sends this candidate to the signaling server, which forwards it to the other peer.
-    *   Peers add received ICE candidates to their `RTCPeerConnection` using `addIceCandidate()`. This process helps the peers discover the best possible path for direct communication, potentially bypassing NATs and firewalls using STUN/TURN servers.
-
-4.  **Establishing Peer-to-Peer Connection:**
-    *   Once enough ICE candidates have been exchanged and processed, the WebRTC peers attempt to establish a direct connection.
-    *   The `RTCPeerConnection` transitions through various states (`checking`, `connected`, `completed`).
-    *   Upon successful connection, the `DataChannel` opens, and chat messages can be sent directly between User A and User B without passing through the signaling server.
-
-5.  **Data Channel Communication:**
-    *   Messages sent via `WebRTCService.sendMessage()` are transmitted over the established `DataChannel`.
-    *   The `DataChannel` provides a reliable, ordered, and secure way to exchange arbitrary data (like chat messages) directly between browsers.
-
-## WebRTC Troubleshooting
-
-If you encounter WebRTC connection issues (e.g., ICE connection state changing to `disconnected` or `failed`), ensure:
-
-*   Both client and server are running.
-*   Firewall rules are not blocking ports 3001 (for signaling) and other dynamic ports used by WebRTC.
-*   STUN/TURN servers are correctly configured (currently using `stun:stun.l.google.com:19302`).
-*   Browser console logs are checked for WebRTC-specific errors.
-</content>
-<task_progress>
-- [x] Analyze WebRTC connection issues
-- [x] Read `webrtcService.js`
-- [x] Improve ICE candidate handling and `onnegotiationneeded` logic
-- [x] Install client dependencies
-- [x] Install server dependencies
-- [x] Run server (kill existing process)
-- [x] Run server
-- [x] Run client
-- [x] Launch browser to verify fix
-- [x] Click "Sign in with Google" button
-- [x] Close browser
-- [x] Verify fix
-- [x] Stop running processes (node.exe)
-- [x] Stop running processes (vite.exe)
-- [x] Create `README.md`
-- [x] Document project requirements
-- [x] Read `README.md` for update
-- [x] Update `README.md` with working procedure
-</task_progress>
+1.  **User Registration:** When a user logs in, the client connects to the signaling server and registers its `userId`, associating it with a unique `socket.id`.
+2.  **Offer/Answer Exchange:** To initiate a chat, one client sends an **Offer** to the other via the signaling server. The receiving client responds with an **Answer**, also relayed by the server.
+3.  **ICE Candidate Exchange:** Both clients gather network addresses (ICE candidates) and exchange them through the signaling server to find the best path for a direct connection.
+4.  **Peer-to-Peer Connection:** Once a path is found, a direct `RTCPeerConnection` is established.
+5.  **Data Channel:** A `DataChannel` is created over the peer connection, allowing chat messages to be sent directly between users, ensuring low latency and privacy.
