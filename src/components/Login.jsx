@@ -24,7 +24,7 @@ const Login = () => {
       />
       <p style={{ textAlign: 'center' }}>Please sign in with your Google account to continue.</p>
       <button onClick={handleSignIn} className="signin-button" style={{ display: 'block', margin: '0 auto', border: "solid 1px white", backgroundColor: "transparent", padding: "10px 20px", borderRadius: "5px", cursor: "pointer", transition: "background-color 0.3s, color 0.3s" }} onMouseEnter={e => { e.target.style.backgroundColor = "white"; e.target.style.color = "black"; }} onMouseLeave={e => { e.target.style.backgroundColor = "transparent"; e.target.style.color = "white"; }}>
-        Sign in with Google &nbsp;<i class="fa fa-sign-in" aria-hidden="true"></i>
+        Sign in with Google &nbsp;<i className="fa fa-sign-in" aria-hidden="true"></i>
       </button>
     </div>
   );
