@@ -8,8 +8,10 @@ const path = require('path'); // Add path module
 const app = express();
 const server = http.createServer(app);
 
+const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+
 app.use(cors({
-  origin: "http://localhost:5173",
+  origin: allowedOrigin,
   credentials: true
 }));
 
@@ -18,7 +20,7 @@ app.use(express.static(path.join(__dirname, '../public')));
 
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: allowedOrigin,
     methods: ["GET", "POST"],
     credentials: true
   },
