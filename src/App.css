@@ -242,6 +242,19 @@ body {
   color: rgba(255, 255, 255, 0.7);
 }
 
+.invite-input-container {
+  display: flex;
+  gap: 10px;
+  padding: 10px;
+  align-items: stretch;
+}
+
+@media (max-width: 600px) {
+  .invite-input-container {
+    flex-direction: column;
+  }
+}
+
 /* General button container styling */
 .container {
   position: relative;

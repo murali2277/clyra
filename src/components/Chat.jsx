@@ -457,7 +457,7 @@ const Chat = ({ user }) => {
 
           {showInviteInput && (
             <div style={{ width: '100%', maxWidth: '500px' }}>
-              <div style={{ display: 'flex', gap: '10px', padding: '10px', alignItems: 'stretch' }}>
+              <div className="invite-input-container">
                 <input
                   type="email"
                   className="invite-email-input"
