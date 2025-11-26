@@ -379,6 +379,10 @@ class WebRTCService {
           maxRetransmits: 3
         });
         this.setupDataChannelHandlers();
+        // Manually trigger offer creation
+        this.createOffer(receiverId).catch(error => {
+          console.error('WebRTCService: Error creating offer after initiating connection:', error);
+        });
       } catch (error) {
         console.error('WebRTCService: Error creating data channel:', error);
         // If data channel creation fails, reinitialize and try again

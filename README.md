@@ -15,7 +15,7 @@ CLyra is a real-time chat application featuring a React frontend and a Node.js b
     *   Docker
 *   **Deployment:**
     *   Vercel (Frontend)
-    *   Render, Fly.io, or any container hosting service (Backend)
+    *   Render (Backend)
 
 ## Project Structure
 
