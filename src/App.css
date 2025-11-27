@@ -580,6 +580,13 @@ body {
   box-shadow: 0 4px 12px 0 rgba(31, 38, 135, 0.37);
 }
 
+/* Styles for Lordicon voice message button */
+.voice-message-icon {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
+
 /* Glassmorphic button with shine effect - increased size */
 .glassmorphic-small-button {
   padding: 8px 15px;

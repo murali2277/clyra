@@ -374,6 +374,34 @@ const Chat = ({ user }) => {
       
       {showChatInterface ? (
         <div className="message-input">
+          <div
+            style={{
+              marginRight: '10px',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              opacity: (!isConnected || connectionStatus.dataChannelState !== 'open') ? 0.7 : 1,
+              cursor: (!isConnected || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer',
+            }}
+            onClick={() => {
+              if (isConnected && connectionStatus.dataChannelState === 'open') {
+                console.log('Voice message button clicked');
+              }
+            }}
+          >
+            <lord-icon
+                src="https://cdn.lordicon.com/iamvsnir.json"
+                trigger="hover"
+                colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                class="voice-message-icon"
+            >
+            </lord-icon>
+          </div>
           <input
             type="text"
             value={newMessage}
@@ -383,18 +411,17 @@ const Chat = ({ user }) => {
             autoFocus
           />
           <button 
-  onClick={handleSendMessage} 
-  disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open'}
-  style={{
-    opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 0.5 : 1,
-    cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer',
-    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-    border: '1px solid rgba(255, 255, 255, 0.3)',
-  }}
->
-  <span className="material-icons">send</span>
-</button>
-
+            onClick={handleSendMessage} 
+            disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open'}
+            style={{
+              opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 0.5 : 1,
+              cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open') ? 'not-allowed' : 'pointer',
+              backgroundColor: 'rgba(255, 255, 255, 0.1)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+            }}
+          >
+            <span className="material-icons">send</span>
+          </button>
         </div>
       ) : (
         <div className="connection-input">
