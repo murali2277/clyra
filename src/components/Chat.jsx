@@ -80,20 +80,14 @@ const Chat = ({ user }) => {
           if (messageData.type === 'audio' && messageData.audio) {
             console.log('Chat: Received audio message event (base64).');
             const base64Audio = messageData.audio.data;
-            const audioType = messageData.audio.type;
+            const audioType = messageData.audio.type || 'audio/wav';
             
             console.log('handleWebRTCEvents: Received base64 audio string length:', base64Audio.length);
+            console.log('handleWebRTCEvents: Audio type:', audioType);
             
-            const byteCharacters = atob(base64Audio.split(',')[1]);
-            const byteNumbers = new Array(byteCharacters.length);
-            for (let i = 0; i < byteCharacters.length; i++) {
-              byteNumbers[i] = byteCharacters.charCodeAt(i);
-            }
-            const byteArray = new Uint8Array(byteNumbers);
-            const audioBlob = new Blob([byteArray], { type: audioType });
-            console.log('handleWebRTCEvents: Created audioBlob type:', audioBlob.type, 'size:', audioBlob.size);
-            const audioUrl = URL.createObjectURL(audioBlob);
-            console.log('handleWebRTCEvents: Created audioUrl:', audioUrl);
+            // Use the base64 data URL directly instead of converting to blob
+            const audioUrl = base64Audio;
+            console.log('handleWebRTCEvents: Using direct base64 audioUrl');
 
             const audioMessage = {
               id: messageData.id,
@@ -106,7 +100,7 @@ const Chat = ({ user }) => {
               setMessages((prevMessages) => {
                 const updatedMessages = prevMessages.filter((msg) => msg.id !== audioMessage.id);
                 clearMessageTimer(audioMessage.id);
-                URL.revokeObjectURL(audioUrl); // Clean up blob URL
+                // No need to revoke URL for base64 data URLs
                 return updatedMessages;
               });
             }, 30000);
