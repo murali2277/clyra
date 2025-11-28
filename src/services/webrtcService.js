@@ -10,6 +10,7 @@ class WebRTCService {
     this.remoteId = null;
     this.pendingCandidates = []; // Initialize this
     this.isInitializing = false;
+    this.chunkBuffer = new Map();
   }
 
   initializePeerConnection() {
@@ -272,11 +273,48 @@ class WebRTCService {
     };
 
     this.dataChannel.onmessage = (event) => {
-      console.log('WebRTCService: Received message via data channel:', event.data);
+      // Check if the message is a chunk
+      try {
+        const message = JSON.parse(event.data);
+        if (message.type === 'chunk') {
+          this.handleChunk(message);
+          return; // Stop further processing for this chunk
+        }
+      } catch (e) {
+        // Not a JSON message, likely a simple string message, fall through
+      }
+
+      // If it's not a chunk, handle it as a complete message
+      console.log('WebRTCService: Received complete message via data channel:', event.data);
       if (this.messageHandler) {
         this.messageHandler(event);
       }
     };
+  }
+
+  handleChunk(chunk) {
+    if (!this.chunkBuffer.has(chunk.chunkId)) {
+      this.chunkBuffer.set(chunk.chunkId, {
+        chunks: [],
+        totalChunks: chunk.totalChunks,
+        receivedChunks: 0,
+      });
+    }
+
+    const buffer = this.chunkBuffer.get(chunk.chunkId);
+    buffer.chunks[chunk.chunkIndex] = chunk.data;
+    buffer.receivedChunks++;
+
+    if (buffer.receivedChunks === buffer.totalChunks) {
+      const reassembledData = buffer.chunks.join('');
+      console.log('WebRTCService: Reassembled message from chunks');
+      this.chunkBuffer.delete(chunk.chunkId);
+      
+      // Pass the reassembled data as if it was a single message event
+      if (this.messageHandler) {
+        this.messageHandler({ data: reassembledData });
+      }
+    }
   }
 
   async createOffer(to) {
@@ -358,6 +396,35 @@ class WebRTCService {
       console.warn('WebRTCService: Data channel not open; readyState =', this.dataChannel ? this.dataChannel.readyState : 'none');
       return false;
     }
+  }
+
+  sendChunkedMessage(message) {
+    const CHUNK_SIZE = 16 * 1024; // 16KB
+    const chunkId = Date.now().toString() + Math.random().toString(36).substr(2, 9);
+    const totalChunks = Math.ceil(message.length / CHUNK_SIZE);
+
+    console.log(`WebRTCService: Sending chunked message with ID ${chunkId}, total chunks: ${totalChunks}`);
+
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = start + CHUNK_SIZE;
+      const chunkData = message.substring(start, end);
+
+      const chunk = {
+        type: 'chunk',
+        chunkId,
+        chunkIndex: i,
+        totalChunks,
+        data: chunkData,
+        isLast: i === totalChunks - 1,
+      };
+
+      if (!this.sendMessage(JSON.stringify(chunk))) {
+        console.error(`WebRTCService: Failed to send chunk ${i} of ${totalChunks}`);
+        return false; // Abort if any chunk fails
+      }
+    }
+    return true;
   }
 
   initiatePeerConnection(userId, receiverId) {

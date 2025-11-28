@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import webrtcService from '../services/webrtcService';
 import { signOut } from '../services/authService';
-import { ReactMediaRecorder } from "react-media-recorder";
+import { useReactMediaRecorder } from "react-media-recorder";
 
 const Chat = ({ user }) => {
   const [messages, setMessages] = useState([]);
@@ -12,11 +12,25 @@ const Chat = ({ user }) => {
   const [inviteReceived, setInviteReceived] = useState(null);
   const [connectionStatus, setConnectionStatus] = useState({});
   const [isConnecting, setIsConnecting] = useState(false);
-  const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState(null);
-  const [audioChunks, setAudioChunks] = useState([]);
   const messageTimers = useRef({}); // Use useRef to store timers
   const audioRef = useRef({}); // Use useRef to store audio refs for playback
+
+  const { status, startRecording, stopRecording, mediaBlobUrl, clearBlobUrl } = useReactMediaRecorder({
+    audio: true,
+    onStop: (blobUrl) => {
+      // This will be handled by the useEffect watching mediaBlobUrl
+      // but if we need immediate action, it can be placed here.
+      console.log('useReactMediaRecorder onStop called with blobUrl:', blobUrl);
+    }
+  });
+
+  useEffect(() => {
+    if (status === "stopped" && mediaBlobUrl) {
+      console.log('Detected mediaBlobUrl after stopping recording:', mediaBlobUrl);
+      handleSendAudioMessage();
+    }
+  }, [status, mediaBlobUrl]);
+
 
   // Function to clear a specific message timer
   const clearMessageTimer = (messageId) => {
@@ -61,42 +75,59 @@ const Chat = ({ user }) => {
         try {
           // Attempt to parse as JSON for text messages
           const messageData = JSON.parse(eventData.data);
-          console.log('Chat: Received text message event:', messageData);
+          console.log('Chat: Received message event:', messageData);
 
-          const timer = setTimeout(() => {
-            setMessages((prevMessages) => {
-              const updatedMessages = prevMessages.filter((msg) => msg.id !== messageData.id);
-              clearMessageTimer(messageData.id);
-              return updatedMessages;
-            });
-          }, 30000);
+          if (messageData.type === 'audio' && messageData.audio) {
+            console.log('Chat: Received audio message event (base64).');
+            const base64Audio = messageData.audio.data;
+            const audioType = messageData.audio.type;
+            
+            console.log('handleWebRTCEvents: Received base64 audio string length:', base64Audio.length);
+            
+            const byteCharacters = atob(base64Audio.split(',')[1]);
+            const byteNumbers = new Array(byteCharacters.length);
+            for (let i = 0; i < byteCharacters.length; i++) {
+              byteNumbers[i] = byteCharacters.charCodeAt(i);
+            }
+            const byteArray = new Uint8Array(byteNumbers);
+            const audioBlob = new Blob([byteArray], { type: audioType });
+            console.log('handleWebRTCEvents: Created audioBlob type:', audioBlob.type, 'size:', audioBlob.size);
+            const audioUrl = URL.createObjectURL(audioBlob);
+            console.log('handleWebRTCEvents: Created audioUrl:', audioUrl);
 
-          messageTimers.current[messageData.id] = timer;
-          setMessages((prevMessages) => [...prevMessages, messageData]);
-        } catch (error) {
-          // If not JSON, assume it's an ArrayBuffer for audio
-          console.log('Chat: Received potential audio message event.');
-          const audioBlob = new Blob([eventData.data], { type: 'audio/webm' });
-          const audioUrl = URL.createObjectURL(audioBlob);
+            const audioMessage = {
+              id: messageData.id,
+              audio: audioUrl,
+              sender: messageData.sender,
+              timestamp: messageData.timestamp,
+            };
 
-          const audioMessage = {
-            id: Date.now(),
-            audio: audioUrl,
-            sender: receiverEmail, // Assuming receiver is the sender of audio
-            timestamp: new Date().toISOString(),
-          };
+            const timer = setTimeout(() => {
+              setMessages((prevMessages) => {
+                const updatedMessages = prevMessages.filter((msg) => msg.id !== audioMessage.id);
+                clearMessageTimer(audioMessage.id);
+                URL.revokeObjectURL(audioUrl); // Clean up blob URL
+                return updatedMessages;
+              });
+            }, 30000);
 
-          const timer = setTimeout(() => {
-            setMessages((prevMessages) => {
-              const updatedMessages = prevMessages.filter((msg) => msg.id !== audioMessage.id);
-              clearMessageTimer(audioMessage.id);
-              URL.revokeObjectURL(audioUrl); // Clean up blob URL
-              return updatedMessages;
-            });
-          }, 30000);
+            messageTimers.current[audioMessage.id] = timer;
+            setMessages((prevMessages) => [...prevMessages, audioMessage]);
+          } else if (messageData.text) {
+             console.log('Chat: Received text message event:', messageData);
+            const timer = setTimeout(() => {
+              setMessages((prevMessages) => {
+                const updatedMessages = prevMessages.filter((msg) => msg.id !== messageData.id);
+                clearMessageTimer(messageData.id);
+                return updatedMessages;
+              });
+            }, 30000);
 
-          messageTimers.current[audioMessage.id] = timer;
-          setMessages((prevMessages) => [...prevMessages, audioMessage]);
+            messageTimers.current[messageData.id] = timer;
+            setMessages((prevMessages) => [...prevMessages, messageData]);
+          }
+        } catch (error) { // Catch parsing errors to log them explicitly
+          console.error('Chat: Error parsing message as JSON:', error, 'Data:', eventData.data); // Log the error for debugging
         }
       }
     };
@@ -209,47 +240,12 @@ const Chat = ({ user }) => {
     messageTimers.current = {};
   };
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-      const recorder = new MediaRecorder(stream);
-      setMediaRecorder(recorder);
-      setIsRecording(true);
-      setAudioChunks([]);
-
-      recorder.ondataavailable = (event) => {
-        setAudioChunks((prev) => [...prev, event.data]);
-      };
-
-      recorder.onstop = () => {
-        stream.getTracks().forEach(track => track.stop());
-        console.log('Recording stopped. Audio chunks:', audioChunks);
-        // Do not send here, wait for send button click
-      };
-
-      recorder.start();
-      console.log('Recording started.');
-    } catch (error) {
-      console.error('Error starting recording:', error);
-      alert('Could not start recording. Please ensure microphone access is granted.');
-      setIsRecording(false);
-    }
-  };
-
-  const stopRecording = () => {
-    if (mediaRecorder && isRecording) {
-      mediaRecorder.stop();
-      setIsRecording(false);
-      console.log('Recording stopped.');
-    }
-  };
-
-  const handleSendAudioMessage = () => {
+  const handleSendAudioMessage = async () => {
     if (!isConnected) {
       alert('Not connected to a peer.');
       return;
     }
-    if (audioChunks.length === 0) {
+    if (!mediaBlobUrl) {
       alert('No audio recorded to send.');
       return;
     }
@@ -258,41 +254,68 @@ const Chat = ({ user }) => {
       return;
     }
 
-    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-    const reader = new FileReader();
-    reader.onload = () => {
-      const arrayBuffer = reader.result;
-      const success = webrtcService.sendMessage(arrayBuffer);
+    try {
+      const response = await fetch(mediaBlobUrl);
+      const audioBlob = await response.blob();
+      console.log('handleSendAudioMessage: Original audioBlob type:', audioBlob.type, 'size:', audioBlob.size);
 
-      if (!success) {
-        alert('Failed to send audio message. Please check connection.');
+      if (audioBlob.size === 0) {
+        alert('Recorded audio is empty. Please ensure your microphone is working and try again.');
+        clearBlobUrl();
         return;
       }
 
-      console.log('Chat: Audio message sent successfully.');
+      // Convert Blob to Base64 for sending
+      const reader = new FileReader();
+      reader.readAsDataURL(audioBlob);
+      reader.onloadend = () => {
+        const base64Audio = reader.result;
+        console.log('handleSendAudioMessage: Base64 audio string length:', base64Audio.length);
 
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const message = {
-        id: Date.now(),
-        audio: audioUrl,
-        sender: user.email,
-        timestamp: new Date().toISOString(),
+        const success = webrtcService.sendChunkedMessage(JSON.stringify({
+          type: 'audio',
+          audio: {
+            data: base64Audio,
+            type: audioBlob.type,
+          },
+          sender: user.email,
+          timestamp: new Date().toISOString(),
+          id: Date.now()
+        }));
+
+        if (!success) {
+          alert('Failed to send audio message. Please check connection.');
+          return;
+        }
+
+        console.log('Chat: Audio message sent successfully.');
+
+        // For local display, create a new object URL from the original blob
+        const localAudioUrl = URL.createObjectURL(audioBlob);
+        const message = {
+          id: Date.now(),
+          audio: localAudioUrl,
+          sender: user.email,
+          timestamp: new Date().toISOString(),
+        };
+
+        const timer = setTimeout(() => {
+          setMessages((prevMessages) => {
+            const updatedMessages = prevMessages.filter((msg) => msg.id !== message.id);
+            clearMessageTimer(message.id);
+            URL.revokeObjectURL(localAudioUrl); // Clean up local blob URL
+            return updatedMessages;
+          });
+        }, 30000);
+
+        messageTimers.current[message.id] = timer;
+        setMessages((prevMessages) => [...prevMessages, message]);
+        clearBlobUrl(); // Clear the blob URL from useReactMediaRecorder
       };
-
-      const timer = setTimeout(() => {
-        setMessages((prevMessages) => {
-          const updatedMessages = prevMessages.filter((msg) => msg.id !== message.id);
-          clearMessageTimer(message.id);
-          URL.revokeObjectURL(audioUrl); // Clean up blob URL
-          return updatedMessages;
-        });
-      }, 30000);
-
-      messageTimers.current[message.id] = timer;
-      setMessages((prevMessages) => [...prevMessages, message]);
-      setAudioChunks([]);
-    };
-    reader.readAsArrayBuffer(audioBlob);
+    } catch (error) {
+      console.error('Error sending audio message:', error);
+      alert('Failed to send audio message due to an error.');
+    }
   };
 
 
@@ -511,53 +534,50 @@ const Chat = ({ user }) => {
             }}
             onClick={() => {
               if (isConnected && connectionStatus.dataChannelState === 'open') {
-                if (isRecording) {
-                  stopRecording();
-                  handleSendAudioMessage();
+                if (status === "recording") {
+                  stopRecording(); // This will trigger the useEffect
                 } else {
                   startRecording();
                 }
-          }
+              }
             }}
           >
-           <ReactMediaRecorder
-              audio
-              onStop={handleSendAudioMessage}
-              render={({ status, startRecording, stopRecording, mediaBlobUrl }) => (
-                <>
-                  {status === "idle" && (
-                    <lord-icon
-                      src="https://cdn.lordicon.com/iamvsnir.json"
-                      trigger="hover"
-                      colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
-                      class="voice-message-icon"
-                      onClick={startRecording}
-                    >
-                    </lord-icon>
-                  )}
-                  {status === "recording" && (
-                     <lord-icon
-                      src="https://cdn.lordicon.com/iamvsnir.json"
-                      trigger="loop"
-                      colors="primary:#e83a30,secondary:#f24c00,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
-                      class="voice-message-icon"
-                      onClick={stopRecording}
-                    >
-                    </lord-icon>
-                  )}
-                  {status === "stopped" && (
-                    <lord-icon
-                      src="https://cdn.lordicon.com/iamvsnir.json"
-                      trigger="hover"
-                      colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
-                      class="voice-message-icon"
-                      onClick={handleSendAudioMessage}
-                    >
-                    </lord-icon>
-                  )}
-                </>
-              )}
-            />
+            {status === "idle" && (
+              <lord-icon
+                src="https://cdn.lordicon.com/iamvsnir.json"
+                trigger="hover"
+                colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                class="voice-message-icon"
+                onClick={() => {
+                  if (isConnected && connectionStatus.dataChannelState === 'open') startRecording();
+                }}
+              >
+              </lord-icon>
+            )}
+            {status === "recording" && (
+              <lord-icon
+                src="https://cdn.lordicon.com/iamvsnir.json"
+                trigger="loop"
+                colors="primary:#e83a30,secondary:#f24c00,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                class="voice-message-icon"
+                onClick={() => {
+                  if (isConnected && connectionStatus.dataChannelState === 'open') stopRecording(); // This will trigger the useEffect
+                }}
+              >
+              </lord-icon>
+            )}
+            {status === "stopped" && mediaBlobUrl && ( // Only show if stopped AND there's a blob to potentially retry sending
+              <lord-icon
+                src="https://cdn.lordicon.com/iamvsnir.json"
+                trigger="hover"
+                colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                onClick={() => {
+                  if (isConnected && connectionStatus.dataChannelState === 'open') handleSendAudioMessage();
+                }}
+                class="voice-message-icon"
+              >
+              </lord-icon>
+            )}
           </div>
           <input
             type="text"
@@ -566,14 +586,14 @@ const Chat = ({ user }) => {
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
             autoFocus
-            disabled={isRecording}
+            disabled={status === "recording"}
           />
           <button
             onClick={handleSendMessage}
-            disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || isRecording}
+            disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || status === "recording"}
             style={{
-              opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || isRecording) ? 0.5 : 1,
-              cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || isRecording) ? 'not-allowed' : 'pointer',
+              opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || status === "recording") ? 0.5 : 1,
+              cursor: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || status === "recording") ? 'not-allowed' : 'pointer',
               backgroundColor: 'rgba(255, 255, 255, 0.1)',
               border: '1px solid rgba(255, 255, 255, 0.3)',
             }}
