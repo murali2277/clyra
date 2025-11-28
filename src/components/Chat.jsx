@@ -500,10 +500,9 @@ const Chat = ({ user }) => {
             {msg.audio && (
               <div className="audio-message">
                 <audio ref={el => audioRef.current[msg.id] = el} src={msg.audio} controls></audio>
-                <button onClick={() => playAudio(msg.id)}>Play Audio</button>
               </div>
             )}
-            <small style={{ fontSize: '10px', opacity: 0.7 }}>
+            <small style={{ fontSize: '10px', opacity: 0.7, display: 'block', textAlign: msg.sender === user.email ? 'right' : 'left' }}>
               {new Date(msg.timestamp).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
             </small>
           </div>
