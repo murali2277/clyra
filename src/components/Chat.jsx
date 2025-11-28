@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import webrtcService from '../services/webrtcService';
 import { signOut } from '../services/authService';
+import { ReactMediaRecorder } from "react-media-recorder";
 
 const Chat = ({ user }) => {
   const [messages, setMessages] = useState([]);
@@ -516,16 +517,47 @@ const Chat = ({ user }) => {
                 } else {
                   startRecording();
                 }
-              }
+          }
             }}
           >
-            <lord-icon
-                src="https://cdn.lordicon.com/iamvsnir.json"
-                trigger={isRecording ? 'loop' : 'hover'}
-                colors={isRecording ? 'primary:#e83a30,secondary:#f24c00,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000' : 'primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000'}
-                class="voice-message-icon"
-            >
-            </lord-icon>
+           <ReactMediaRecorder
+              audio
+              onStop={handleSendAudioMessage}
+              render={({ status, startRecording, stopRecording, mediaBlobUrl }) => (
+                <>
+                  {status === "idle" && (
+                    <lord-icon
+                      src="https://cdn.lordicon.com/iamvsnir.json"
+                      trigger="hover"
+                      colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                      class="voice-message-icon"
+                      onClick={startRecording}
+                    >
+                    </lord-icon>
+                  )}
+                  {status === "recording" && (
+                     <lord-icon
+                      src="https://cdn.lordicon.com/iamvsnir.json"
+                      trigger="loop"
+                      colors="primary:#e83a30,secondary:#f24c00,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                      class="voice-message-icon"
+                      onClick={stopRecording}
+                    >
+                    </lord-icon>
+                  )}
+                  {status === "stopped" && (
+                    <lord-icon
+                      src="https://cdn.lordicon.com/iamvsnir.json"
+                      trigger="hover"
+                      colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                      class="voice-message-icon"
+                      onClick={handleSendAudioMessage}
+                    >
+                    </lord-icon>
+                  )}
+                </>
+              )}
+            />
           </div>
           <input
             type="text"
@@ -536,8 +568,8 @@ const Chat = ({ user }) => {
             autoFocus
             disabled={isRecording}
           />
-          <button 
-            onClick={handleSendMessage} 
+          <button
+            onClick={handleSendMessage}
             disabled={!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || isRecording}
             style={{
               opacity: (!newMessage.trim() || connectionStatus.dataChannelState !== 'open' || isRecording) ? 0.5 : 1,

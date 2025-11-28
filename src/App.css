@@ -133,6 +133,7 @@ body {
   display: flex;
   padding: 10px;
   border-top: 1px solid #ccc;
+  justify-content: flex-end; /* Align items to the right */
 }
 
 .connection-input {
@@ -159,12 +160,7 @@ body {
 
 .message-input button {
   margin-left: 10px;
-  padding: 10px 20px;
-  border: none;
-  background-color: #007bff;
-  color: white;
-  border-radius: 5px;
-  cursor: pointer;
+  margin-right: 0px; /* Reset margin-right if it was previously set */
 }
 
 .send-invite-button {
@@ -184,10 +180,6 @@ body {
 }
 
 .send-invite-button:hover .fa-share-square-o {
-  animation: meat 1s infinite;
-}
-
-.message-input button:hover .fa-comments-o {
   animation: meat 1s infinite;
 }
 
@@ -335,12 +327,6 @@ body {
   transition-delay: 0.25s;
 }
 
-.container .btn:hover::before /*lightup button*/ {
-  bottom: 0;
-  height: 50%;
-  width: 80%;
-  border-radius: 30px;
-}
 
 .container .btn::after {
   content: "";
