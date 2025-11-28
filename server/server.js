@@ -8,7 +8,7 @@ const path = require('path'); // Add path module
 const app = express();
 const server = http.createServer(app);
 
-const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:5173";
+const allowedOrigin = process.env.CORS_ORIGIN || "http://localhost:5173" || "http://localhost:3000";
 
 app.use(cors({
   origin: allowedOrigin,
