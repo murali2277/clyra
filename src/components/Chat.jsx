@@ -1,12 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import webrtcService from '../services/webrtcService';
 import { signOut } from '../services/authService';
-import { useReactMediaRecorder } from "react-media-recorder";
+import { useReactMediaRecorder } from 'react-media-recorder';
 
 const Chat = ({ user }) => {
+  const [receiverEmail, setReceiverEmail] = useState('');
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState('');
-  const [receiverEmail, setReceiverEmail] = useState('');
   const [isConnected, setIsConnected] = useState(false);
   const [inviteSent, setInviteSent] = useState(false);
   const [inviteReceived, setInviteReceived] = useState(null);
@@ -21,6 +21,15 @@ const Chat = ({ user }) => {
       // This will be handled by the useEffect watching mediaBlobUrl
       // but if we need immediate action, it can be placed here.
       console.log('useReactMediaRecorder onStop called with blobUrl:', blobUrl);
+    }
+  });
+
+  // Separate recorder for video messages (includes audio)
+  const { status: vStatus, startRecording: startVideoRecording, stopRecording: stopVideoRecording, mediaBlobUrl: videoBlobUrl, clearBlobUrl: clearVideoBlobUrl } = useReactMediaRecorder({
+    video: true,
+    audio: true,
+    onStop: (blobUrl) => {
+      console.log('useReactMediaRecorder (video) onStop called with blobUrl:', blobUrl);
     }
   });
 
@@ -119,6 +128,32 @@ const Chat = ({ user }) => {
 
             messageTimers.current[messageData.id] = timer;
             setMessages((prevMessages) => [...prevMessages, messageData]);
+          }
+          else if (messageData.type === 'video' && messageData.video) {
+            console.log('Chat: Received video message event (base64).');
+            const base64Video = messageData.video.data;
+            const videoType = messageData.video.type || 'video/webm';
+
+            // Use the base64 data URL directly
+            const videoUrl = base64Video;
+
+            const videoMessage = {
+              id: messageData.id,
+              video: videoUrl,
+              sender: messageData.sender,
+              timestamp: messageData.timestamp,
+            };
+
+            const vtimer = setTimeout(() => {
+              setMessages((prevMessages) => {
+                const updatedMessages = prevMessages.filter((msg) => msg.id !== videoMessage.id);
+                clearMessageTimer(videoMessage.id);
+                return updatedMessages;
+              });
+            }, 30000);
+
+            messageTimers.current[videoMessage.id] = vtimer;
+            setMessages((prevMessages) => [...prevMessages, videoMessage]);
           }
         } catch (error) { // Catch parsing errors to log them explicitly
           console.error('Chat: Error parsing message as JSON:', error, 'Data:', eventData.data); // Log the error for debugging
@@ -337,6 +372,82 @@ const Chat = ({ user }) => {
     }, 30000);
   };
 
+  const handleSendVideoMessage = async () => {
+    if (!isConnected) {
+      alert('Not connected to a peer.');
+      return;
+    }
+    if (!videoBlobUrl) {
+      alert('No video recorded to send.');
+      return;
+    }
+    if (!webrtcService.dataChannel || webrtcService.dataChannel.readyState !== 'open') {
+      alert('Data channel is not ready. Current state: ' + (webrtcService.dataChannel?.readyState || 'undefined'));
+      return;
+    }
+
+    try {
+      const response = await fetch(videoBlobUrl);
+      const videoBlob = await response.blob();
+      console.log('handleSendVideoMessage: Original videoBlob type:', videoBlob.type, 'size:', videoBlob.size);
+
+      if (videoBlob.size === 0) {
+        alert('Recorded video is empty. Please ensure your camera/microphone are working and try again.');
+        clearVideoBlobUrl();
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.readAsDataURL(videoBlob);
+      reader.onloadend = () => {
+        const base64Video = reader.result;
+        console.log('handleSendVideoMessage: Base64 video string length:', base64Video.length);
+
+        const success = webrtcService.sendChunkedMessage(JSON.stringify({
+          type: 'video',
+          video: {
+            data: base64Video,
+            type: videoBlob.type,
+          },
+          sender: user.email,
+          timestamp: new Date().toISOString(),
+          id: Date.now()
+        }));
+
+        if (!success) {
+          alert('Failed to send video message. Please check connection.');
+          return;
+        }
+
+        console.log('Chat: Video message sent successfully.');
+
+        const localVideoUrl = URL.createObjectURL(videoBlob);
+        const message = {
+          id: Date.now(),
+          video: localVideoUrl,
+          sender: user.email,
+          timestamp: new Date().toISOString(),
+        };
+
+        const timer = setTimeout(() => {
+          setMessages((prevMessages) => {
+            const updatedMessages = prevMessages.filter((msg) => msg.id !== message.id);
+            clearMessageTimer(message.id);
+            URL.revokeObjectURL(localVideoUrl);
+            return updatedMessages;
+          });
+        }, 30000);
+
+        messageTimers.current[message.id] = timer;
+        setMessages((prevMessages) => [...prevMessages, message]);
+        clearVideoBlobUrl();
+      };
+    } catch (error) {
+      console.error('Error sending video message:', error);
+      alert('Failed to send video message due to an error.');
+    }
+  };
+
   const handleAcceptInvite = () => {
     if (!webrtcService.socket || !webrtcService.socket.connected) {
       alert('Not connected to signaling server. Please try again.');
@@ -502,6 +613,11 @@ const Chat = ({ user }) => {
                 <audio ref={el => audioRef.current[msg.id] = el} src={msg.audio} controls></audio>
               </div>
             )}
+            {msg.video && (
+              <div className="video-message">
+                <video style={{ maxWidth: '100%' }} controls src={msg.video}></video>
+              </div>
+            )}
             <small style={{ fontSize: '10px', opacity: 0.7, display: 'block', textAlign: msg.sender === user.email ? 'right' : 'left' }}>
               {new Date(msg.timestamp).toLocaleString('en-US', { hour: 'numeric', minute: 'numeric', hour12: true })}
             </small>
@@ -541,12 +657,30 @@ const Chat = ({ user }) => {
                 trigger="hover"
                 colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
                 class="voice-message-icon"
-                onClick={() => {
-                  if (isConnected && connectionStatus.dataChannelState === 'open') startRecording();
-                }}
+              onClick={() => {
+                if (isConnected && connectionStatus.dataChannelState === 'open') startRecording();
+              }}
               >
               </lord-icon>
             )}
+
+            {/* Video Message Icon */}
+            <lord-icon
+                src="https://cdn.lordicon.com/iamvsnir.json"
+                trigger="hover"
+                colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                class="voice-message-icon"
+                onClick={() => {
+                    if (isConnected && connectionStatus.dataChannelState === 'open') {
+                      if (vStatus === 'recording') {
+                        stopVideoRecording();
+                      } else {
+                        startVideoRecording();
+                      }
+                    }
+                }}
+              >
+            </lord-icon>
             {status === "recording" && (
               <lord-icon
                 src="https://cdn.lordicon.com/iamvsnir.json"
@@ -566,6 +700,18 @@ const Chat = ({ user }) => {
                 colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
                 onClick={() => {
                   if (isConnected && connectionStatus.dataChannelState === 'open') handleSendAudioMessage();
+                }}
+                class="voice-message-icon"
+              >
+              </lord-icon>
+            )}
+            {vStatus === "stopped" && videoBlobUrl && (
+              <lord-icon
+                src="https://cdn.lordicon.com/iamvsnir.json"
+                trigger="hover"
+                colors="primary:#4f1091,secondary:#a866ee,tertiary:#ffffff,quaternary:#f24c00,quinary:#000000"
+                onClick={() => {
+                  if (isConnected && connectionStatus.dataChannelState === 'open') handleSendVideoMessage();
                 }}
                 class="voice-message-icon"
               >
