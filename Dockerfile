@@ -1,32 +1,19 @@
-# Stage 1: Build the frontend
-FROM node:20-alpine AS frontend-builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
-COPY package.json package-lock.json ./
-RUN npm install
+COPY package*.json ./
+
+RUN npm ci
 
 COPY . .
+
 RUN npm run build
-RUN ls -la /app/dist # Add this line to inspect the build output
 
-# Stage 2: Build the backend and serve the frontend
-FROM node:20-alpine
+FROM nginx:alpine
 
-WORKDIR /app
+COPY --from=builder /app/dist /usr/share/nginx/html
 
-# Copy backend package.json and install dependencies
-COPY server/package.json server/package-lock.json ./server/
-RUN npm install --prefix ./server
+EXPOSE 80
 
-# Copy backend source code
-COPY server/server.js ./server/
-
-# Copy the built frontend from the frontend-builder stage
-COPY --from=frontend-builder /app/dist ./public/
-
-# Expose the port the server runs on
-EXPOSE 3001
-
-# Command to run the backend server
-CMD ["node", "server/server.js"]
+CMD ["nginx", "-g", "daemon off;"]

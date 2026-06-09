@@ -1,0 +1,220 @@
+CLYRA Technical Interview Guide
+
+Project Name:
+CLYRA - Real-time peer-to-peer chat application
+
+1) Project Summary
+CLYRA is a two-tier chat system:
+- Frontend: React + Vite SPA for login, invite management, and chat UI.
+- Backend: Node.js + Express + Socket.IO signaling server.
+
+The core design is WebRTC DataChannel for direct browser-to-browser message transfer, while Socket.IO is used only for signaling (offer/answer/ICE exchange) and presence routing.
+
+This gives CLYRA a hybrid architecture:
+- Centralized control plane: signaling server.
+- Decentralized data plane: peer-to-peer message flow.
+
+2) Main Features Implemented
+- Google Sign-In authentication via Firebase Auth.
+- Email-based user registration to signaling server.
+- Invite flow (send, accept, decline).
+- WebRTC handshake (offer, answer, ICE candidates).
+- Direct P2P text messaging over RTCDataChannel.
+- Voice message recording and transfer (chunked Base64 payloads).
+- Temporary message retention (messages auto-expire after 30 seconds).
+- Connection status tracking and reset/reconnect paths.
+
+3) End-to-End Workflow (Runtime)
+A) User Authentication
+1. App boots (`src/main.jsx`) and renders `App`.
+2. `App` subscribes to Firebase auth state (`onAuthStateChanged`).
+3. If unauthenticated: `Login` screen is shown.
+4. User signs in with Google popup (`signInWithGoogle` in `src/services/authService.js`).
+
+B) Signaling Registration
+1. After login, `Chat` component mounts.
+2. `webrtcService.connect(user.email)` opens Socket.IO connection to signaling server.
+3. Client emits `register-user` with email.
+4. Server maps email <-> socket id in in-memory maps.
+
+C) Session Establishment (Invite + WebRTC)
+1. Initiator enters receiver email and emits `send-invite`.
+2. Server looks up receiver and forwards `invite`.
+3. Receiver accepts -> emits `accept-invite`.
+4. Initiator receives `invite-accepted`, creates DataChannel + SDP offer.
+5. Server relays `signal` events (offer/answer/candidates) between both peers.
+6. Both peers set remote descriptions, add ICE candidates, and establish RTC connection.
+7. DataChannel opens -> chat is marked connected.
+
+D) Text Message Flow
+1. Sender creates JSON payload: id, text, sender, timestamp.
+2. Payload is sent via `dataChannel.send(...)`.
+3. Receiver handles incoming channel message and appends to UI.
+4. Both sides set 30-second timers to remove message from state.
+
+E) Voice Message Flow
+1. `react-media-recorder` captures audio blob.
+2. Blob is converted to Base64 Data URL.
+3. Large payload is split into chunks (16 KB each) in `sendChunkedMessage`.
+4. Receiver reassembles chunks using `chunkId` and `chunkIndex`.
+5. Reassembled audio message is rendered in `<audio controls>`.
+6. Message is auto-removed after 30 seconds.
+
+4) Architecture and Components
+Frontend (React SPA)
+- `src/App.jsx`: auth gate (Login vs Chat).
+- `src/components/Login.jsx`: Google login UI.
+- `src/components/Chat.jsx`: invite state machine + message/voice UI.
+- `src/services/authService.js`: Firebase app/auth initialization and helpers.
+- `src/services/webrtcService.js`: singleton service for socket + WebRTC lifecycle.
+
+Backend (Node signaling)
+- `server/server.js`: Express server + Socket.IO event broker.
+- Keeps volatile maps:
+  - `users`: email -> socket metadata
+  - `sockets`: socket.id -> email
+- Implements events:
+  - register-user, send-invite, accept-invite, decline-invite
+  - signal, public-key, ping-user, leave, disconnect
+- Includes cleanup logic for stale sockets and graceful shutdown.
+
+Deployment/Packaging
+- `vercel.json` for SPA rewrite to `index.html`.
+- `Dockerfile.backend` for backend-only container image.
+- `Dockerfile` multi-stage image: build frontend then serve via backend process.
+
+5) Technical Stack and Why It Was Chosen
+Frontend
+1. React 19
+- Why used: component-driven UI, stateful interactive chat views.
+- Alternative: Vue, Angular, Svelte.
+- Trade-off: React needs disciplined state management as app grows.
+
+2. Vite 7
+- Why used: very fast local dev startup/HMR and simple build pipeline.
+- Alternative: Create React App, Next.js (if SSR needed).
+- Trade-off: Vite is excellent for SPA, but not fullstack framework by default.
+
+3. Socket.IO Client
+- Why used: robust reconnect logic and event-based API for signaling.
+- Alternative: native WebSocket client.
+- Trade-off: slight protocol overhead vs raw WebSocket.
+
+4. react-media-recorder
+- Why used: simplifies MediaRecorder integration and blob handling.
+- Alternative: direct browser MediaRecorder API.
+- Trade-off: less control than fully custom recorder pipeline.
+
+5. Firebase Auth (Google provider)
+- Why used: quick, production-grade OAuth without building custom auth backend.
+- Alternative: Auth0, Supabase Auth, custom JWT + OAuth backend.
+- Trade-off: vendor coupling and Firebase project setup requirements.
+
+Backend
+1. Node.js + Express 5
+- Why used: event-heavy, IO-friendly server with simple API.
+- Alternative: Fastify, NestJS, Go/Python signaling services.
+- Trade-off: no built-in typed contract unless TypeScript is added.
+
+2. Socket.IO
+- Why used: easy pub/sub style signaling and connection lifecycle events.
+- Alternative: ws library, MQTT broker.
+- Trade-off: Socket.IO protocol lock-in between client and server.
+
+Communication
+1. WebRTC DataChannel
+- Why used: low-latency direct peer messaging and reduced server data relay cost.
+- Alternative: server-relayed WebSocket chat.
+- Trade-off: NAT/firewall complexity; production often needs TURN servers.
+
+2. STUN (Google public STUN)
+- Why used: basic NAT traversal for most public-network scenarios.
+- Alternative: self-hosted STUN/TURN (coturn), managed TURN.
+- Trade-off: STUN alone is insufficient in strict enterprise networks.
+
+UI/Animation Enhancements
+- Framer Motion, GSAP, Vanta backgrounds, LordIcon, Font Awesome.
+- Why used: rich interactive visual polish.
+- Alternative: plain CSS animations or lighter utility-based effects.
+- Trade-off: more external assets and runtime weight.
+
+6) Security and Privacy Posture
+What is good:
+- Message payloads move peer-to-peer once channel is established.
+- No persistent message database in current architecture.
+- Invite and signaling paths include basic validation and error propagation.
+
+Current gaps/risk to mention in interview:
+- Signaling server trusts email strings from clients; no signed identity verification.
+- No TURN server configured, so reliability may degrade in restrictive networks.
+- Voice messages are Base64 strings in memory; no additional payload-level encryption.
+- `src/utils/cryptoService.js` exists but is not integrated into message path.
+- In-memory user maps mean no horizontal scaling/session replication by default.
+
+7) Scalability Characteristics
+Current behavior:
+- Backend is stateless except in-memory presence maps.
+- Message traffic mostly bypasses server (good for server cost).
+- Signaling is lightweight but single-instance memory map is a bottleneck.
+
+To scale in production:
+- Add Redis adapter for Socket.IO and shared user presence.
+- Add TURN infrastructure for enterprise-grade WebRTC connectivity.
+- Add authenticated signaling tokens (Firebase ID token verification server-side).
+- Add rate limits and abuse protections on signaling events.
+
+8) Reliability and Error Handling
+Implemented:
+- Socket reconnection attempts and re-registration after reconnect.
+- Signaling errors surfaced to UI with user-friendly alerts.
+- Periodic stale-user cleanup on server every 30 seconds.
+- Manual reset path in UI to recover stuck session states.
+
+Missing/possible improvement:
+- Better finite-state machine for invite/connection states.
+- Centralized toast/notification system instead of browser alerts.
+- Structured logging and telemetry (instead of console-only logs).
+
+9) DevOps and Environment Model
+Frontend env vars (Vite):
+- `VITE_SIGNALING_SERVER_URL`
+- Firebase keys (`VITE_FIREBASE_*`)
+
+Backend env vars:
+- `PORT` (default 3001)
+- `CORS_ORIGIN`
+
+Local run model:
+- Terminal 1: backend (`server`, port 3001)
+- Terminal 2: frontend (`vite`, configured on port 3000 in `vite.config.js`)
+
+Cloud model (as intended by README):
+- Frontend on Vercel
+- Backend on Render/container host
+
+10) Real Users / End User Persona
+Primary end users:
+- Privacy-aware users who want temporary direct chat sessions.
+- Small teams or individuals needing instant, low-latency browser chat without account provisioning beyond Google login.
+- Demo/hackathon/prototype users exploring WebRTC capabilities.
+
+Not yet ideal for:
+- Large enterprise compliance-heavy environments.
+- Audited/persistent business messaging (no archival/search/moderation pipeline).
+
+11) Interview Talking Points (Strong Narrative)
+- Architectural decision: separate signaling plane from message plane.
+- Why WebRTC: latency + privacy + reduced server relay cost.
+- Why Socket.IO: simplify signaling reliability and event semantics.
+- Why Firebase Auth: fast secure login integration with minimal backend auth code.
+- Product behavior choice: ephemeral messages (30s TTL) for privacy-first UX.
+- Production roadmap: TURN, server-side token validation, Redis-backed scale-out, end-to-end encryption integration using existing crypto module.
+
+12) Notable Observations from Code Review
+- `cryptoService` is currently dead code (defined but not imported anywhere).
+- `public-key` signaling event exists server-side but no active frontend integration.
+- Dependencies used in `cryptoService` (`tweetnacl`, `tweetnacl-util`) are not listed in root `package.json` (not currently breaking because module is unused).
+- Current design can be described as MVP-ready, not enterprise-ready.
+
+13) One-line Technical Pitch (for interview intro)
+"CLYRA is a React + Node real-time chat app where Socket.IO handles presence and WebRTC signaling, while text/voice messages flow directly peer-to-peer over DataChannel, giving low latency and privacy with a lightweight signaling backend."
