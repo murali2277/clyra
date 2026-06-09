@@ -122,4 +122,4 @@ jobs:
               --name clyra-backend \
               --restart unless-stopped \
               -p 3001:3001 \
-              ${{ secrets.DOCKER_USERNAME }}/clyra-backend:latest   
+              ${{ secrets.DOCKER_USERNAME }}/clyra-backend:latest
