@@ -17,49 +17,14 @@ env:
 
 jobs:
 
-  build:
-
-    runs-on: ubuntu-latest
-
-    steps:
-
-      - name: Checkout Code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-
-      - name: Install Dependencies
-        run: npm ci
-
-      - name: Build Frontend
-        run: npm run build
-
-      - name: Upload Build Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: dist/
-
   docker:
 
-    needs: build
-
     runs-on: ubuntu-latest
 
     steps:
 
       - name: Checkout Code
         uses: actions/checkout@v4
-
-      - name: Download Build Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: dist
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -70,6 +35,14 @@ jobs:
       - name: Build Docker Image
         run: |
           docker build \
+          --build-arg VITE_SIGNALING_SERVER_URL="${{ secrets.VITE_SIGNALING_SERVER_URL }}" \
+          --build-arg VITE_FIREBASE_API_KEY="${{ secrets.VITE_FIREBASE_API_KEY }}" \
+          --build-arg VITE_FIREBASE_AUTH_DOMAIN="${{ secrets.VITE_FIREBASE_AUTH_DOMAIN }}" \
+          --build-arg VITE_FIREBASE_PROJECT_ID="${{ secrets.VITE_FIREBASE_PROJECT_ID }}" \
+          --build-arg VITE_FIREBASE_STORAGE_BUCKET="${{ secrets.VITE_FIREBASE_STORAGE_BUCKET }}" \
+          --build-arg VITE_FIREBASE_MESSAGING_SENDER_ID="${{ secrets.VITE_FIREBASE_MESSAGING_SENDER_ID }}" \
+          --build-arg VITE_FIREBASE_APP_ID="${{ secrets.VITE_FIREBASE_APP_ID }}" \
+          --build-arg VITE_FIREBASE_MEASUREMENT_ID="${{ secrets.VITE_FIREBASE_MEASUREMENT_ID }}" \
           -t ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:latest \
           .
 
@@ -104,4 +77,4 @@ jobs:
               --name clyra-frontend \
               --restart unless-stopped \
               -p 80:80 \
-              ${{ secrets.DOCKER_USERNAME }}/clyra-frontend:latest
+              ${{ secrets.DOCKER_USERNAME }}/clyra-frontend:latest
