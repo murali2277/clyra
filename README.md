@@ -98,11 +98,28 @@ npm run dev
 ```
 The React application will open in your browser at `http://localhost:5173`.
 
-## Deployment
+## Deployment & DevOps
 
-The frontend and backend are designed to be deployed independently.
+The application supports both automated cloud-native hosting (AWS EC2 + GitHub Actions + Docker Hub) and alternative serverless platform hosting (Vercel + Render).
 
-### Backend Deployment (Render)
+### 1. Automated Cloud-Native Hosting (AWS EC2, Docker & GitHub Actions)
+
+For production-grade hosting, Clyra is fully containerized and integrated with a zero-touch CI/CD pipeline:
+
+*   **Containerization:** Both the React frontend and Node.js backend are containerized using Docker. The frontend uses a multi-stage build, serving statically compiled assets via Nginx on port `80`.
+*   **CI/CD Pipeline:** GitHub Actions automates test execution, builds container images, publishes them to Docker Hub, and securely SSHs into AWS EC2 to trigger updates.
+*   **Host Orchestration:** Running containers are deployed on AWS EC2, automatically restarts are handled via Docker restart policies, and environment variables are securely injected.
+
+> [!TIP]
+> For the complete system architecture diagram, step-by-step setup instructions, and configuration details, read the full [DevOps Architecture & Deployment Guide](DEVOPS.md).
+
+---
+
+### 2. Alternative Serverless Hosting (Render & Vercel)
+
+The frontend and backend can also be deployed independently on serverless cloud platforms.
+
+#### Backend Deployment (Render)
 
 The backend is containerized and can be deployed to any service that supports Docker or Node.js.
 
@@ -117,7 +134,7 @@ The backend is containerized and can be deployed to any service that supports Do
     *   `CORS_ORIGIN`: The URL of your deployed Vercel frontend (e.g., `https://your-app.vercel.app`).
 5.  **Deploy.** Render will provide a public URL for your backend (e.g., `https://your-backend.onrender.com`).
 
-### Frontend Deployment (Vercel)
+#### Frontend Deployment (Vercel)
 
 1.  **Connect your GitHub repository to Vercel.**
 2.  **Configuration:** Vercel should automatically detect and configure the project as a Vite application.
